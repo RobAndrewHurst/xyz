@@ -47,8 +47,11 @@ import './mod/utils/processEnv.js';
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
+import ViteExpress from 'vite-express'; // Import vite-express
 
 import api from './api/api.js';
+
+const isProd = process.env.NODE_ENV === 'production';
 
 if (process.versions.node.split('.')[0] < 22) {
   console.warn(`Process Node version below 22.`);
@@ -58,14 +61,17 @@ const app = express();
 
 app.disable('x-powered-by');
 
-const limiter = rateLimit({
-  windowMs: xyzEnv.RATE_LIMIT_WINDOW,
-  limit: xyzEnv.RATE_LIMIT,
-  standardHeaders: 'draft-8',
-  legacyHeaders: false,
-});
+if (isProd) {
+  // Rate limiting middleware
+  const limiter = rateLimit({
+    windowMs: xyzEnv.RATE_LIMIT_WINDOW,
+    limit: xyzEnv.RATE_LIMIT,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+  });
 
-app.use(limiter);
+  app.use(limiter);
+}
 
 app.use(
   '/xyz',
@@ -126,4 +132,12 @@ app.get(`${xyzEnv.DIR}/:locale?`, api);
 
 app.get(`/`, api);
 
-app.listen(xyzEnv.PORT);
+ViteExpress.config({
+  mode: isProd ? 'production' : 'development', // Switch based on environment
+  viteConfigFile: 'vite.config.js',
+});
+
+// Bind Vite to Express and start the server
+ViteExpress.listen(app, xyzEnv.PORT, () => {
+  console.log(`Server running on http://localhost:${xyzEnv.PORT}`);
+});
