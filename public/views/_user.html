@@ -1,533 +1,591 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
+  <head data-user="{{user}}" data-dir="{{dir}}">
+    <title>XYZ | User Administration</title>
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="{{dir}}/public/icons/favicon.ico"
+    />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<head data-user="{{user}}" data-dir="{{dir}}">
-  <title>XYZ | User Administration</title>
-  <link rel="icon" type="image/x-icon" href="{{dir}}/public/icons/favicon.ico" />
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0"
+    />
 
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0" />
+    <link
+      href="https://unpkg.com/tabulator-tables@6.3.1/dist/css/tabulator.min.css"
+      rel="stylesheet"
+    />
 
-  <link href="https://unpkg.com/tabulator-tables@6.3.1/dist/css/tabulator.min.css" rel="stylesheet">
+    <script
+      type="text/javascript"
+      src="https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js"
+    ></script>
 
-  <script type="text/javascript" src="https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js"></script>
-
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      border-spacing: 0;
-    }
-
-    body {
-      position: absolute;
-      height: 100%;
-      width: 100%;
-      padding: 40px;
-      font: 14px "Open Sans", sans-serif;
-    }
-
-    body>.flex {
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .material-icons {
-      font-family: 'Material Symbols Outlined', sans-serif;
-      font-size: 24px;
-      color: black;
-    }
-
-    .btn-row {
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      display: flex;
-      gap: 10px;
-      margin: 10px 0;
-    }
-
-    button {
-      border: none;
-      outline: none;
-      background: none;
-      text-align: center;
-      color: white;
-
-      &:hover {
-        cursor: pointer;
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        border-spacing: 0;
       }
 
-      &.flat {
-        border-radius: 3px;
-        border-bottom: 1px solid #f2f2f2;
-        padding: 0.3em;
+      body {
+        position: absolute;
+        height: 100%;
+        width: 100%;
+        padding: 40px;
+        font:
+          14px "Open Sans",
+          sans-serif;
       }
 
-      &.raised {
-        border-radius: 3px;
-        border: 1px solid #f2f2f2;
-        box-shadow: 1px 1px 2px #f2f2f2;
-        padding: 0.3em;
+      body > .flex {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
       }
 
-      &.primary-colour {
-        background-color: #003D57;
+      .material-icons {
+        font-family: "Material Symbols Outlined", sans-serif;
+        font-size: 24px;
+        color: black;
       }
 
-      &.red {
-        background-color: #f44336;
+      .btn-row {
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        display: flex;
+        gap: 10px;
+        margin: 10px 0;
       }
-    }
 
-    @media only screen and (max-width: 768px) {
+      button {
+        border: none;
+        outline: none;
+        background: none;
+        text-align: center;
+        color: white;
 
-      body,
-      h1 {
-        padding: 10px;
+        &:hover {
+          cursor: pointer;
+        }
+
+        &.flat {
+          border-radius: 3px;
+          border-bottom: 1px solid #f2f2f2;
+          padding: 0.3em;
+        }
+
+        &.raised {
+          border-radius: 3px;
+          border: 1px solid #f2f2f2;
+          box-shadow: 1px 1px 2px #f2f2f2;
+          padding: 0.3em;
+        }
+
+        &.primary-colour {
+          background-color: #003d57;
+        }
+
+        &.red {
+          background-color: #f44336;
+        }
       }
-    }
-  </style>
 
-</head>
+      @media only screen and (max-width: 768px) {
+        body,
+        h1 {
+          padding: 10px;
+        }
+      }
+    </style>
+  </head>
 
-<body>
+  <body>
+    <div class="flex">
+      <h1>Account Administration</h1>
 
-  <div class="flex">
-
-    <h1>Account Administration</h1>
-
-    <div class="btn-row">
-      <div <span>Filter</span>
-        <input id="filterInput" type="text" placeholder="e.g. geolytix" style="max-width: 100%;">
-        <button class="raised primary-colour" id="toggleBlocked">Show blocked accounts</button>
+      <div class="btn-row">
+        <div>
+          <span>Filter</span>
+          <input
+            id="filterInput"
+            type="text"
+            placeholder="e.g. geolytix"
+            style="max-width: 100%"
+          />
+          <button class="raised primary-colour" id="toggleBlocked">
+            Show blocked accounts
+          </button>
+        </div>
+        <div>
+          <button
+            class="raised primary-colour"
+            onclick="window.location.href = `${window.location.origin}{{dir}}`"
+          >
+            Default View
+          </button>
+          <button
+            class="raised red"
+            onclick="window.location.href = `${window.location.origin}{{dir}}?logout=true`"
+          >
+            Logout
+          </button>
+        </div>
       </div>
-      <div>
-        <button class="raised primary-colour"
-          onclick="window.location.href = `${window.location.origin}{{dir}}`">Default View</button>
-        <button class="raised red"
-          onclick="window.location.href = `${window.location.origin}{{dir}}?logout=true`">Logout</button>
-      </div>
+
+      <div id="userTable"></div>
     </div>
+  </body>
 
-    <div id="userTable"></div>
+  <script>
+    window.onload = async () => {
+      if (!document.head.dataset.user) {
+        window.location.href = "?login=true";
+        return;
+      }
 
-  </div>
+      // Get list of available roles from workspace.
+      const rolesList = await xhrPromise(
+        `${document.head.dataset.dir}/api/workspace/roles`,
+      );
 
-</body>
+      // List of languages key values.
+      const languagesList = {
+        en: "English",
+        de: "German",
+        zh: "Chinese",
+        zh_tw: "Chinese (Traditional)",
+        pl: "Polish",
+        ja: "Japanese",
+        es: "Spanish",
+        fr: "French",
+        tr: "Turkish",
+        it: "Italian",
+        th: "Thai",
+      };
 
-<script>
-  window.onload = async () => {
+      const params = {};
 
-    if (!document.head.dataset.user) {
-      window.location.href = '?login=true'
-      return;
-    }
+      // Get URL params.
+      window.location.search.replace(
+        /[?&]+([^=&]+)=([^&]*)/gi,
+        (match, key, value) => {
+          params[key] = decodeURI(value);
+        },
+      );
 
-    // Get list of available roles from workspace.
-    const rolesList = await xhrPromise(`${document.head.dataset.dir}/api/workspace/roles`)
+      // Get user list from host.
+      const response = await xhrPromise(
+        `${document.head.dataset.dir}/api/user/list`,
+      );
 
-    // List of languages key values.
-    const languagesList = {
-      "en": "English",
-      "de": "German",
-      "zh": "Chinese",
-      "zh_tw": "Chinese (Traditional)",
-      "pl": "Polish",
-      "ja": "Japanese",
-      "es": "Spanish",
-      "fr": "French",
-      "tr": "Turkish",
-      "it": "Italian",
-      "th": "Thai",
-    };
+      // Data must be an array if only 1 record returned in response.
+      const data = (Array.isArray(response) && response) || [response];
 
-    const params = {}
+      data.forEach((row) => {
+        row.re_verification = !row.verificationtoken;
+      });
 
-    // Get URL params.
-    window.location.search.replace(/[?&]+([^=&]+)=([^&]*)/gi, (match, key, value) => {
-      params[key] = decodeURI(value)
-    })
+      // Sort data to promote email from url parameter to top.
+      if (params.email) {
+        data.sort(function (x, y) {
+          return x.email == params.email ? -1 : y.email == params.email ? 1 : 0;
+        });
+      }
 
-    // Get user list from host.
-    const response = await xhrPromise(`${document.head.dataset.dir}/api/user/list`)
-
-    // Data must be an array if only 1 record returned in response.
-    const data = Array.isArray(response) && response || [response]
-
-    data.forEach(row => {
-      row.re_verification = !row.verificationtoken
-    })
-
-    // Sort data to promote email from url parameter to top.
-    if (params.email) {
-      data.sort(function (x, y) { return x.email == params.email ? -1 : y.email == params.email ? 1 : 0; });
-    }
-
-    const userTable = new Tabulator(document.getElementById('userTable'),
-      {
+      const userTable = new Tabulator(document.getElementById("userTable"), {
         data: data,
-        rowFormatter: row => {
-          const user = row.getData()
+        rowFormatter: (row) => {
+          const user = row.getData();
 
           // Highlight user row.
-          row.getElement().style.backgroundColor = user.email === params.email && '#fff9c4'
+          row.getElement().style.backgroundColor =
+            user.email === params.email && "#fff9c4";
 
           // Style blocked user row.
-          row.getElement().style.backgroundColor = user.blocked && '#ef9a9a'
+          row.getElement().style.backgroundColor = user.blocked && "#ef9a9a";
         },
-        columnHeaderVertAlign: 'middle',
+        columnHeaderVertAlign: "middle",
         rowHeight: 30,
         columns: [
           {
-            field: 'email',
-            vertAlign: 'middle',
-            headerTooltip: 'Account EMail',
+            field: "email",
+            vertAlign: "middle",
+            headerTooltip: "Account EMail",
             titleFormatter: () => '<span class="material-icons">face</span>',
             resizable: true,
             frozen: true,
-            responsive: 0 // Never hide
+            responsive: 0, // Never hide
           },
           {
-            field: 'verified',
-            hozAlign: 'center',
-            vertAlign: 'middle',
-            headerTooltip: 'The account email has been verified through a token sent to the email address.',
+            field: "verified",
+            hozAlign: "center",
+            vertAlign: "middle",
+            headerTooltip:
+              "The account email has been verified through a token sent to the email address.",
             titleFormatter: () => '<span class="material-icons">done</span>',
-            formatter: 'tickCross',
+            formatter: "tickCross",
             cellClick: cellToggle,
             resizable: false,
-            responsive: 0 // Never hide
+            responsive: 0, // Never hide
           },
           {
-            field: 're_verification',
-            hozAlign: 'center',
-            vertAlign: 'middle',
-            headerTooltip: 'The account has an outstanding password reset to be verified.',
-            titleFormatter: () => '<span class="material-icons">check_circle</span>',
-            formatter: 'tickCross',
+            field: "re_verification",
+            hozAlign: "center",
+            vertAlign: "middle",
+            headerTooltip:
+              "The account has an outstanding password reset to be verified.",
+            titleFormatter: () =>
+              '<span class="material-icons">check_circle</span>',
+            formatter: "tickCross",
             cellClick: cellToggle,
             resizable: false,
-            responsive: 0 // Never hide
+            responsive: 0, // Never hide
           },
           {
-            field: 'approved',
-            hozAlign: 'center',
-            vertAlign: 'middle',
-            headerTooltip: 'The account has been approved by a site administrator and is permitted to access the application.',
-            titleFormatter: () => '<span class="material-icons">done_all</span>',
-            formatter: 'tickCross',
+            field: "approved",
+            hozAlign: "center",
+            vertAlign: "middle",
+            headerTooltip:
+              "The account has been approved by a site administrator and is permitted to access the application.",
+            titleFormatter: () =>
+              '<span class="material-icons">done_all</span>',
+            formatter: "tickCross",
             cellClick: cellToggle,
             resizable: false,
-            responsive: 0 // Never hide
+            responsive: 0, // Never hide
           },
           {
-            field: 'admin',
-            hozAlign: 'center',
-            vertAlign: 'middle',
-            headerTooltip: 'The account is an admin account which can access this page and change other account credentials.',
-            titleFormatter: () => '<span class="material-icons">supervisor_account</span>',
-            formatter: 'tickCross',
+            field: "admin",
+            hozAlign: "center",
+            vertAlign: "middle",
+            headerTooltip:
+              "The account is an admin account which can access this page and change other account credentials.",
+            titleFormatter: () =>
+              '<span class="material-icons">supervisor_account</span>',
+            formatter: "tickCross",
             cellClick: cellToggle,
             resizable: false,
-            responsive: 0 // Never hide
+            responsive: 0, // Never hide
           },
           {
-            field: 'api',
-            hozAlign: 'center',
-            vertAlign: 'middle',
-            headerTooltip: 'The account has priviliges to create API keys.',
+            field: "api",
+            hozAlign: "center",
+            vertAlign: "middle",
+            headerTooltip: "The account has priviliges to create API keys.",
             titleFormatter: () => '<span class="material-icons">key</span>',
-            formatter: 'tickCross',
+            formatter: "tickCross",
             cellClick: cellToggle,
             resizable: false,
-            responsive: 1 // Hide first
+            responsive: 1, // Hide first
           },
           {
-            field: 'failedattempts',
-            hozAlign: 'center',
-            vertAlign: 'middle',
-            headerTooltip: 'Failed login attempts.',
+            field: "failedattempts",
+            hozAlign: "center",
+            vertAlign: "middle",
+            headerTooltip: "Failed login attempts.",
             titleFormatter: () => '<span class="material-icons">warning</span>',
-            formatter: (cell, formatterParams) => '<span style="color:red; font-weight:bold;">' + cell.getValue() + '</span>',
+            formatter: (cell, formatterParams) =>
+              '<span style="color:red; font-weight:bold;">' +
+              cell.getValue() +
+              "</span>",
             resizable: false,
-            responsive: 2 // Hide first
+            responsive: 2, // Hide first
           },
           {
-            field: 'language',
-            hozAlign: 'center',
-            vertAlign: 'middle',
-            headerTooltip: 'Account language',
-            titleFormatter: () => '<span class="material-icons">translate</span>',
-            editor: 'list',
+            field: "language",
+            hozAlign: "center",
+            vertAlign: "middle",
+            headerTooltip: "Account language",
+            titleFormatter: () =>
+              '<span class="material-icons">translate</span>',
+            editor: "list",
             editorParams: {
               // show the label of the language in the dropdown list
-              values: Object.keys(languagesList).map(key => ({ label: languagesList[key], value: key })),
+              values: Object.keys(languagesList).map((key) => ({
+                label: languagesList[key],
+                value: key,
+              })),
             },
             cellEdited: languageEdited,
             resizable: false,
             responsive: 1,
             formatter: (cell, formatterParams, onRendered) => {
-
-              let val = cell.getValue()
+              let val = cell.getValue();
 
               if (!val) return;
 
               return languagesList[val];
-            }
+            },
           },
           {
-            field: 'roles',
-            title: 'Roles',
-            vertAlign: 'middle',
-            headerTooltip: 'Account roles',
+            field: "roles",
+            title: "Roles",
+            vertAlign: "middle",
+            headerTooltip: "Account roles",
             headerSort: false,
-            editor: 'list',
+            editor: "list",
             editorParams: {
               values: rolesList,
-              multiselect: true
+              multiselect: true,
             },
             cellEdited: rolesEdited,
             resizable: false,
-            responsive: 0 // Never hide
+            responsive: 0, // Never hide
           },
           {
-            field: 'access_log',
-            title: 'Access Log',
-            vertAlign: 'middle',
-            headerTooltip: 'Click last access log entry for full access log array.',
+            field: "access_log",
+            title: "Access Log",
+            vertAlign: "middle",
+            headerTooltip:
+              "Click last access log entry for full access log array.",
             cellClick: getAccessLog,
             resizable: false,
-            responsive: 1 // Hide first
+            responsive: 1, // Hide first
           },
           {
-            field: 'approved_by',
-            title: 'Approved by',
-            vertAlign: 'middle',
-            headerTooltip: 'Admin who approved last modification to this account.',
+            field: "approved_by",
+            title: "Approved by",
+            vertAlign: "middle",
+            headerTooltip:
+              "Admin who approved last modification to this account.",
             resizable: false,
-            responsive: 1 // Hide first
+            responsive: 1, // Hide first
           },
           {
-            visible: typeof data[0].expires_on !== 'undefined',
-            field: 'expires_on',
-            title: 'Expires on',
-            vertAlign: 'middle',
+            visible: typeof data[0].expires_on !== "undefined",
+            field: "expires_on",
+            title: "Expires on",
+            vertAlign: "middle",
             minWidth: 120,
-            headerTooltip: 'Date when user approval expires.',
+            headerTooltip: "Date when user approval expires.",
             responsive: 1, // Hide first
             formatter: (cell, formatterParams, onRendered) => {
-
-              let val = parseInt(cell.getValue())
+              let val = parseInt(cell.getValue());
 
               if (isNaN(val)) return;
 
-              let str = new Date(val * 1000).toLocaleString('en-GB', {
+              let str = new Date(val * 1000).toLocaleString("en-GB", {
                 year: "numeric",
                 month: "short",
                 day: "numeric",
-              })
+              });
 
               // Colour text red if account has expired.
-              return val < new Date() / 1000 ? `<span style="color:red;">${str}</span>` : str;
+              return val < new Date() / 1000
+                ? `<span style="color:red;">${str}</span>`
+                : str;
             },
             editor: expiryEdit,
-            resizable: false
+            resizable: false,
           },
           {
-            field: 'blocked',
-            hozAlign: 'center',
-            vertAlign: 'middle',
-            headerTooltip: 'Blocked accounts can no longer login or reset their password.',
+            field: "blocked",
+            hozAlign: "center",
+            vertAlign: "middle",
+            headerTooltip:
+              "Blocked accounts can no longer login or reset their password.",
             titleFormatter: () => '<span class="material-icons">lock</span>',
-            formatter: 'tickCross',
+            formatter: "tickCross",
             cellClick: cellToggle,
             resizable: false,
-            responsive: 2 // Hide second
+            responsive: 2, // Hide second
           },
           {
-            field: 'delete',
-            vertAlign: 'middle',
+            field: "delete",
+            vertAlign: "middle",
             headerSort: false,
-            titleFormatter: () => '<span class="material-icons">person_remove</span>',
-            formatter: () => '<span style="color:red; font-weight:bold;">DELETE</span>',
+            titleFormatter: () =>
+              '<span class="material-icons">person_remove</span>',
+            formatter: () =>
+              '<span style="color:red; font-weight:bold;">DELETE</span>',
             cellClick: rowDelete,
             resizable: false,
-            responsive: 2 // Hide second
-          }
-        ]
+            responsive: 2, // Hide second
+          },
+        ],
       });
 
+      await new Promise((resolve) => userTable.on("tableBuilt", resolve));
 
-    await new Promise(resolve => userTable.on('tableBuilt', resolve))
+      let blocked = true;
+      userTable.setFilter("blocked", "!=", true);
+      document.getElementById("toggleBlocked").onclick = (e) => {
+        blocked = !blocked;
 
-    let blocked = true
-    userTable.setFilter("blocked", "!=", true);
-    document.getElementById("toggleBlocked").onclick = e => {
+        if (blocked) {
+          e.target.textContent = "Show blocked accounts";
+          userTable.setFilter("blocked", "!=", true);
+          return;
+        }
 
-      blocked = !blocked
-
-      if (blocked) {
-        e.target.textContent = "Show blocked accounts"
-        userTable.setFilter("blocked", "!=", true)
-        return;
-      }
-
-      e.target.textContent = "Hide blocked accounts"
-      userTable.removeFilter("blocked", "!=", true)
-    }
-
-    document.getElementById("filterInput").oninput = e => {
-
-      // Check whether email or role includes filter term.
-      userTable.setData(data.filter(user => user.email.includes(e.target.value)
-        || user.roles.some(role => role.includes(e.target.value))))
-    }
-
-
-    function expiryEdit(cell, onRendered, success, cancel) {
-
-      let rowData = cell.getRow().getData()
-      //create and style editor
-      let editor = document.createElement("input");
-
-      editor.setAttribute("type", "date");
-
-      // Set the value to the current date if the value is null and you are editing the cell.
-      if (!rowData.expires_on) {
-        const date = new Date();
-        editor.value = date.toISOString().slice(0, 10);
-      } else {
-        const date = new Date(rowData.expires_on * 1000);
-        editor.value = date.toISOString().slice(0, 10);
-      }
-
-      //create and style input
-      editor.style.padding = "3px";
-      editor.style.width = "100%";
-      editor.style.boxSizing = "border-box";
-
-      onRendered(function () {
-        editor.focus();
-      });
-
-      //when the value has been set, trigger the cell to update
-      function successFunc() {
-        const val = new Date(editor.value).getTime() / 1000 || null;
-        xhrPromise(`${document.head.dataset.dir}/api/user/update?email=${rowData.email}&field=expires_on&value=${val}`)
-        cell.setValue(val);
-      }
-
-      //editor.addEventListener("change", successFunc);
-      editor.addEventListener("blur", successFunc);
-
-      //return the editor element
-      return editor;
-    };
-
-    function languageEdited(e) {
-
-      if (JSON.stringify(e._cell.value) === JSON.stringify(e._cell.oldValue)) return;
-
-      xhrPromise(`${document.head.dataset.dir}/api/user/update?email=${e._cell.row.data.email}&field=language&value=${e._cell.value}`)
-    }
-
-    async function cellToggle(e, cell) {
-
-      const user = cell.getData();
-
-      const col = cell.getColumn();
-
-      const field = col.getField();
-
-      const cellValue = !cell.getValue();
-
-      //The value of the field will be set to null if the field is an api and the new value from the cell is false.
-      const cellFalsy = cellValue === false ? null : cellValue;
-      const apiValue = field === 'api' ? cellFalsy : cellValue;
-
-      // Re-verification cannot be undone.
-      if (field === 're_verification' && cell.getValue()) return;
-
-      const response = await xhrPromise(`${document.head.dataset.dir}/api/user/update?email=${user.email}&field=${field === 're_verification' ? 'verified' : field}&value=${apiValue}`);
-
-      if (response.err) return console.error(response.err);
-
-      cell.setValue(cellValue);
-
-      const row = cell.getRow();
-
-      if (field === 're_verification'
-        || (field === 'verified' && cell.getValue())) {
-
-        let re_verification_cell = row.getCell('re_verification')
-        re_verification_cell.setValue(true)
-
-        let verified_cell = row.getCell('verified')
-        verified_cell.setValue(true)
-
-        let approved_cell = row.getCell('approved')
-        approved_cell.setValue(true)
+        e.target.textContent = "Hide blocked accounts";
+        userTable.removeFilter("blocked", "!=", true);
       };
 
-      row.reformat();
-    };
+      document.getElementById("filterInput").oninput = (e) => {
+        // Check whether email or role includes filter term.
+        userTable.setData(
+          data.filter(
+            (user) =>
+              user.email.includes(e.target.value) ||
+              user.roles.some((role) => role.includes(e.target.value)),
+          ),
+        );
+      };
 
-    async function getAccessLog(e, cell) {
+      function expiryEdit(cell, onRendered, success, cancel) {
+        let rowData = cell.getRow().getData();
+        //create and style editor
+        let editor = document.createElement("input");
 
-      const user = cell.getData();
+        editor.setAttribute("type", "date");
 
-      const response = await xhrPromise(`${document.head.dataset.dir}/api/user/log?email=${user.email}`);
+        // Set the value to the current date if the value is null and you are editing the cell.
+        if (!rowData.expires_on) {
+          const date = new Date();
+          editor.value = date.toISOString().slice(0, 10);
+        } else {
+          const date = new Date(rowData.expires_on * 1000);
+          editor.value = date.toISOString().slice(0, 10);
+        }
 
-      if (response.err) return console.error(response.err);
+        //create and style input
+        editor.style.padding = "3px";
+        editor.style.width = "100%";
+        editor.style.boxSizing = "border-box";
 
-      alert(response.access_log.join('\n'));
-    };
+        onRendered(function () {
+          editor.focus();
+        });
 
-    async function rowDelete(e, cell) {
+        //when the value has been set, trigger the cell to update
+        function successFunc() {
+          const val = new Date(editor.value).getTime() / 1000 || null;
+          xhrPromise(
+            `${document.head.dataset.dir}/api/user/update?email=${rowData.email}&field=expires_on&value=${val}`,
+          );
+          cell.setValue(val);
+        }
 
-      const user = cell.getData();
+        //editor.addEventListener("change", successFunc);
+        editor.addEventListener("blur", successFunc);
 
-      const row = cell.getRow();
+        //return the editor element
+        return editor;
+      }
 
-      if (confirm('Delete account ' + user.email)) {
+      function languageEdited(e) {
+        if (JSON.stringify(e._cell.value) === JSON.stringify(e._cell.oldValue))
+          return;
 
-        const response = await xhrPromise(`${document.head.dataset.dir}/api/user/delete?email=${user.email}`);
+        xhrPromise(
+          `${document.head.dataset.dir}/api/user/update?email=${e._cell.row.data.email}&field=language&value=${e._cell.value}`,
+        );
+      }
+
+      async function cellToggle(e, cell) {
+        const user = cell.getData();
+
+        const col = cell.getColumn();
+
+        const field = col.getField();
+
+        const cellValue = !cell.getValue();
+
+        //The value of the field will be set to null if the field is an api and the new value from the cell is false.
+        const cellFalsy = cellValue === false ? null : cellValue;
+        const apiValue = field === "api" ? cellFalsy : cellValue;
+
+        // Re-verification cannot be undone.
+        if (field === "re_verification" && cell.getValue()) return;
+
+        const response = await xhrPromise(
+          `${document.head.dataset.dir}/api/user/update?email=${user.email}&field=${field === "re_verification" ? "verified" : field}&value=${apiValue}`,
+        );
 
         if (response.err) return console.error(response.err);
 
-        row.delete();
+        cell.setValue(cellValue);
+
+        const row = cell.getRow();
+
+        if (
+          field === "re_verification" ||
+          (field === "verified" && cell.getValue())
+        ) {
+          let re_verification_cell = row.getCell("re_verification");
+          re_verification_cell.setValue(true);
+
+          let verified_cell = row.getCell("verified");
+          verified_cell.setValue(true);
+
+          let approved_cell = row.getCell("approved");
+          approved_cell.setValue(true);
+        }
+
+        row.reformat();
+      }
+
+      async function getAccessLog(e, cell) {
+        const user = cell.getData();
+
+        const response = await xhrPromise(
+          `${document.head.dataset.dir}/api/user/log?email=${user.email}`,
+        );
+
+        if (response.err) return console.error(response.err);
+
+        alert(response.access_log.join("\n"));
+      }
+
+      async function rowDelete(e, cell) {
+        const user = cell.getData();
+
+        const row = cell.getRow();
+
+        if (confirm("Delete account " + user.email)) {
+          const response = await xhrPromise(
+            `${document.head.dataset.dir}/api/user/delete?email=${user.email}`,
+          );
+
+          if (response.err) return console.error(response.err);
+
+          row.delete();
+        }
+      }
+
+      function rolesEdited(e) {
+        if (JSON.stringify(e._cell.value) === JSON.stringify(e._cell.oldValue))
+          return;
+
+        xhrPromise(
+          `${document.head.dataset.dir}/api/user/update?email=${e._cell.row.data.email}&field=roles&value=${encodeURIComponent(e._cell.value)}`,
+        );
       }
     };
 
-    function rolesEdited(e) {
+    function xhrPromise(req) {
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
 
-      if (JSON.stringify(e._cell.value) === JSON.stringify(e._cell.oldValue)) return;
+        xhr.open("GET", req);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.responseType = "json";
 
-      xhrPromise(`${document.head.dataset.dir}/api/user/update?email=${e._cell.row.data.email}&field=roles&value=${encodeURIComponent(e._cell.value)}`)
+        xhr.onload = (e) => {
+          if (e.target.status >= 300) return reject({ err: e.target.status });
+          resolve(e.target.response || {});
+        };
+
+        xhr.send();
+      });
     }
-  }
-
-  function xhrPromise(req) {
-    return new Promise((resolve, reject) => {
-
-      const xhr = new XMLHttpRequest()
-
-      xhr.open('GET', req)
-      xhr.setRequestHeader('Content-Type', 'application/json')
-      xhr.responseType = 'json'
-
-      xhr.onload = e => {
-        if (e.target.status >= 300) return reject({ err: e.target.status })
-        resolve(e.target.response || {})
-      }
-
-      xhr.send()
-    })
-  }
-</script>
-
+  </script>
 </html>
