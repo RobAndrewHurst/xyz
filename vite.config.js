@@ -19,11 +19,7 @@ const input = Object.fromEntries(
 );
 
 export default defineConfig(() => {
-  // Get the base path from environment variable or default to '/'
-  const base = process.env.DIR || '/';
-
   return {
-    base, // Set the base public path for the entire application
     publicDir: 'public', // Static assets that should be copied as-is
     build: {
       target: 'esnext',
