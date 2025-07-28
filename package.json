@@ -9,6 +9,12 @@
   "scripts": {
     "test": "node --experimental-test-module-mocks node_modules/codi-test-framework/cli.js tests",
     "test-watch": "node --watch-path=. --experimental-test-module-mocks node_modules/codi-test-framework/cli.js tests --quiet",
+    "dev": "node dev.mjs",
+    "dev:vite": "vite",
+    "dev:express": "node express.js",
+    "build": "vite build && npm run build:css",
+    "build:css": "npm run ui_css && npm run mapp_css",
+    "preview": "vite preview",
     "_build": "node esbuild.config.mjs",
     "ui_css": "npx esbuild --bundle public/css/_ui.css --outfile=public/css/ui.css",
     "mapp_css": "npx esbuild --bundle public/css/_mapp.css --outfile=public/css/mapp.css",
@@ -39,6 +45,8 @@
     "esbuild": "^0.25.0",
     "express": "^5.1.0",
     "express-rate-limit": "^7.5.0",
-    "nodemon": "^3.1.7"
+    "nodemon": "^3.1.7",
+    "vite": "^7.0.0",
+    "@vitejs/plugin-legacy": "^7.1.0"
   }
 }
