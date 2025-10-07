@@ -1,42 +1,19 @@
-# Pull Request Template
+<!--
+> Thank you for putting together a PR.
+	Please could you provide enough information to make the review process quick & easy.
+	Learn more about contributing: https://github.com/GEOLYTIX/xyz/blob/main/CONTRIBUTING.md
+-->
 
-## Description
+## Summary
 
-Please include a summary of the changes, and the motivation for the change.
+<!-- Explain the **motivation** for making the change. What problem are you trying to solve?-->
 
-## GitHub Issue
+<!-- Link any relevant issues or discussions on the PR if necessary. -->
 
-Provide the link to the relevant GitHub issue it addresses.
+## Testing
 
-## Type of Change
+<!-- What tests did you run and what tests did you add? -->
 
-Please delete options that are not relevant, and select all options that apply.
+## Docs
 
-- ✅ Bug fix (non-breaking change which fixes an issue)
-- ✅ New feature (non-breaking change which adds functionality)
-- ✅ Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- ✅ Documentation
-- ✅ Testing
-
-## How have you tested this?
-
-Please describe how to test this change and how you verified it worked.
-
-## Testing Checklist
-
-Please delete options that are not relevant, and select all options that apply.
-
-- ✅ Existing Tests still pass
-- ✅ Updated Existing Tests
-- ✅ New Tests Added
-- ✅ Ran locally on my machine
-
-## Code Quality Checklist
-
-Please delete options that are not relevant, and select all options that apply.
-
-- ✅ My code follows the guidelines of XYZ
-- ✅ My code has been commented
-- ✅ Documentation has been updated
-- ✅ New and existing unit tests pass locally with my changes
-- ✅ Main has been merged into this PR
+<!-- If you are adding in a new feature or touching a pre-exisiting module please can you provide adequate docs that make sense to the code. -->
