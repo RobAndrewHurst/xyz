@@ -194,21 +194,6 @@ export default defineConfig({
     devSourcemap: true,
   },
 
-  build: {
-    outDir: 'public/js',
-    sourcemap: true,
-    rollupOptions: {
-      input: {
-        mapp: resolve(__dirname, 'lib/mapp.mjs'),
-        ui: resolve(__dirname, 'lib/ui.mjs'),
-      },
-      output: {
-        entryFileNames: 'lib/[name].js',
-        format: 'es',
-      },
-    },
-  },
-
   optimizeDeps: {
     exclude: ['ol'],
   },
