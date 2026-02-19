@@ -11,6 +11,9 @@
     "neverBuiltDependencies": []
   },
   "scripts": {
+    "dev": "pnpm exec concurrently --names \"express,vite\" --prefix-colors \"blue,green\" \"node express.js\" \"pnpm exec vite\"",
+    "dev:vite": "pnpm exec vite",
+    "dev:express": "node express.js",
     "test": "node --experimental-test-module-mocks node_modules/codi-test-framework/cli.js tests",
     "test-watch": "node --watch-path=. --experimental-test-module-mocks node_modules/codi-test-framework/cli.js tests --quiet",
     "_build": "node esbuild.config.mjs",
@@ -45,6 +48,7 @@
     "esbuild": "^0.25.0",
     "express": "^5.1.0",
     "express-rate-limit": "^7.5.0",
-    "nodemon": "^3.1.7"
+    "nodemon": "^3.1.7",
+    "vite": "^7.3.1"
   }
 }

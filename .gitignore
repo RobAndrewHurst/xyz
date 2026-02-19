@@ -16,6 +16,7 @@ node_modules/*
 .pnpm-store/
 
 resources
+node_modules/.vite/
 public/js/*
 public/workspaces/*
 public/js/plugins/*
