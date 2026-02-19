@@ -13,9 +13,42 @@ const PORT = process.env.PORT || 3000;
 const EXPRESS = `http://localhost:${PORT}`;
 
 /**
+Rewrite an Express HTML response so that JS and CSS are served by
+Vite (with HMR) instead of from pre-built esbuild bundles.
+*/
+function rewriteHtml(body) {
+  // Replace pre-built JS bundles with Vite source modules.
+  body = body.replace(
+    /src="([^"]*?)\/public\/js\/lib\/mapp\.js"/g,
+    'src="/lib/mapp.mjs"',
+  );
+  body = body.replace(
+    /src="([^"]*?)\/public\/js\/lib\/ui\.js"/g,
+    'src="/lib/ui.mjs"',
+  );
+
+  // Replace pre-built CSS with source CSS for HMR.
+  body = body.replace(
+    /href="([^"]*?)\/public\/css\/ui\.css"/g,
+    'href="$1/public/css/_ui.css"',
+  );
+  body = body.replace(
+    /href="([^"]*?)\/public\/css\/mapp\.css"/g,
+    'href="$1/public/css/_mapp.css"',
+  );
+
+  // Inject Vite client script after the opening <head> tag.
+  body = body.replace(
+    /(<head[^>]*>)/,
+    '$1<script type="module" src="/@vite/client"></script>',
+  );
+
+  return body;
+}
+
+/**
 Proxy an incoming request to Express and pipe the response back.
-For HTML responses, asset paths are rewritten so that JS and CSS
-are served by Vite (with HMR) instead of from pre-built bundles.
+HTML responses are rewritten via rewriteHtml().
 */
 function proxyToExpress(req, res) {
   const proxyReq = http.request(
@@ -42,41 +75,13 @@ function proxyToExpress(req, res) {
 
       const contentType = proxyRes.headers['content-type'] || '';
 
-      // For HTML responses (login, register, default views served by
-      // Express), rewrite asset paths so JS/CSS come from Vite.
+      // For HTML responses, buffer the body and rewrite asset paths.
       if (contentType.includes('text/html')) {
         const chunks = [];
         proxyRes.on('data', (chunk) => chunks.push(chunk));
         proxyRes.on('end', () => {
-          let body = Buffer.concat(chunks).toString();
+          const body = rewriteHtml(Buffer.concat(chunks).toString());
 
-          // Replace pre-built JS bundles with Vite source modules.
-          body = body.replace(
-            /src="([^"]*?)\/public\/js\/lib\/mapp\.js"/g,
-            'src="/lib/mapp.mjs"',
-          );
-          body = body.replace(
-            /src="([^"]*?)\/public\/js\/lib\/ui\.js"/g,
-            'src="/lib/ui.mjs"',
-          );
-
-          // Replace pre-built CSS with source CSS for HMR.
-          body = body.replace(
-            /href="([^"]*?)\/public\/css\/ui\.css"/g,
-            'href="$1/public/css/_ui.css"',
-          );
-          body = body.replace(
-            /href="([^"]*?)\/public\/css\/mapp\.css"/g,
-            'href="$1/public/css/_mapp.css"',
-          );
-
-          // Inject Vite client script after the opening <head> tag.
-          body = body.replace(
-            /(<head[^>]*>)/,
-            '$1<script type="module" src="/@vite/client"></script>',
-          );
-
-          // Update headers for rewritten body.
           const headers = { ...proxyRes.headers };
           headers['content-length'] = Buffer.byteLength(body);
           delete headers['content-encoding'];
@@ -106,7 +111,6 @@ function proxyToExpress(req, res) {
 }
 
 // Paths that Vite should serve directly (not proxy to Express).
-// Everything else under DIR gets proxied.
 const viteStaticPrefixes = [
   '/lib/',
   '/public/',
@@ -117,7 +121,6 @@ const viteStaticPrefixes = [
 ];
 
 export default defineConfig({
-  // Root directory where index.html lives
   root: resolve(__dirname),
 
   // Disable Vite's default public directory handling.
@@ -125,7 +128,6 @@ export default defineConfig({
   // source CSS, fonts, and icons served as regular static files.
   publicDir: false,
 
-  // Dev server configuration
   server: {
     port: 5173,
     // Listen on all interfaces so Tailscale (and other network) access works.
@@ -133,11 +135,9 @@ export default defineConfig({
     // Allow Tailscale MagicDNS hostnames.
     allowedHosts: ['.ts.net'],
     open: true,
-    // HMR over WebSocket
     hmr: {
       overlay: true,
     },
-    // Watch for changes in these directories
     watch: {
       include: ['lib/**', 'public/css/**'],
     },
@@ -145,21 +145,13 @@ export default defineConfig({
 
   plugins: [
     {
-      name: 'xyz-html-env',
-      // Inject DIR, TITLE, LOGIN into index.html at serve time.
-      transformIndexHtml(html) {
-        return html
-          .replace(/%DIR%/g, DIR)
-          .replace(/%TITLE%/g, process.env.TITLE || 'GEOLYTIX | XYZ')
-          .replace(
-            /%LOGIN%/g,
-            process.env.PRIVATE || process.env.PUBLIC ? 'true' : '',
-          );
-      },
-    },
-    {
       name: 'xyz-express-proxy',
       configureServer(server) {
+        // All routing goes through Express. Vite only serves static
+        // assets (source JS modules, CSS, fonts, etc.).
+        // Express handles auth, views, API, SAML, locale routing.
+        // HTML responses from Express are rewritten so JS/CSS load
+        // from Vite source files with HMR support.
         server.middlewares.use((req, res, next) => {
           // Strip DIR prefix from static asset requests so Vite
           // can serve them from the project root.
@@ -167,8 +159,6 @@ export default defineConfig({
           if (DIR && req.url?.startsWith(`${DIR}/`)) {
             const pathAfterDir = req.url.slice(DIR.length);
 
-            // If the path after DIR is a Vite static asset, rewrite
-            // the URL and let Vite handle it.
             if (viteStaticPrefixes.some((p) => pathAfterDir.startsWith(p))) {
               req.url = pathAfterDir;
               return next();
@@ -180,62 +170,30 @@ export default defineConfig({
             return next();
           }
 
-          const url = new URL(req.url, 'http://localhost');
-          const pathname = url.pathname;
-
-          // Auth query params (logout, login, register) must always be
-          // proxied to Express so cookies are set/cleared server-side.
-          if (
-            url.searchParams.has('logout') ||
-            url.searchParams.has('login') ||
-            url.searchParams.has('register')
-          ) {
-            return proxyToExpress(req, res);
-          }
-
-          // When DIR is set, redirect root to DIR so all entry points
-          // go through Express for auth checking.
-          // When DIR is empty, root goes to Express directly.
-          if (pathname === '/' || pathname === '/index.html') {
-            if (DIR) {
-              res.writeHead(302, { location: DIR + (url.search || '') });
-              res.end();
-              return;
-            }
-            return proxyToExpress(req, res);
-          }
-
-          // Bare DIR path (e.g. /iwg) is proxied to Express so auth
-          // is checked. Express either returns the login/default view
-          // HTML (which gets rewritten for Vite) or redirects to SAML.
-          // This ensures unauthenticated users see the login page.
-
-          // Everything else gets proxied to Express:
+          // Everything else goes to Express:
+          // - / (root, redirects to DIR)
+          // - /DIR (auth check, default view or login view)
           // - /DIR/api/... (all API routes)
           // - /DIR/saml/... (SAML auth)
           // - /DIR/view/... (view templates)
           // - /DIR/:locale (locale routing)
-          // - /DIR?logout=true, ?login=true, ?register=true
-          // - /DIR (bare, redirects/auth)
+          // - ?logout, ?login, ?register (auth actions)
           proxyToExpress(req, res);
         });
       },
     },
   ],
 
-  // Resolve aliases so imports work cleanly
   resolve: {
     alias: {
       '/public': resolve(__dirname, 'public'),
     },
   },
 
-  // CSS handling - Vite handles CSS imports natively with HMR
   css: {
     devSourcemap: true,
   },
 
-  // Build configuration (for `vite build` as alternative to esbuild)
   build: {
     outDir: 'public/js',
     sourcemap: true,
@@ -251,7 +209,6 @@ export default defineConfig({
     },
   },
 
-  // Optimize deps - exclude OpenLayers since it's loaded from CDN
   optimizeDeps: {
     exclude: ['ol'],
   },
