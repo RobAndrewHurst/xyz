@@ -30,17 +30,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
 
       - name: Checkout
         uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Install dependencies
-        run: pnpm install
+        run: bun install
       - name: Generate Docs
-        run: pnpm generate-docs
+        run: bun run generate-docs
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

@@ -2,8 +2,8 @@
 ### /sign/s3
 Signs requests to S3. Provides functions for get, list, delete and put to S3.
 
-> For public buckets you do not need to use the s3 sign in order to get or list from the bucket. 
-> See bellow for examples of how public interactions 
+> For public buckets you do not need to use the s3 sign in order to get or list from the bucket.
+> See bellow for examples of how public interactions
 
 The module requires AWS_S3_CLIENT credentials in the xyzEnv and will export as null if the credentials are not provided. The credentials consist of two parts: an access key ID and a secret access key eg: `AWS_S3_CLIENT="accessKeyId=AKIAIOSFODNN7EXAMPLE&secretAccessKey=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"`. [Both the access key ID and secret access key together are required to authenticate your requests]{@link https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html}.
 
@@ -31,13 +31,13 @@ url = `${host}/api/sign/s3?` + mapp.utils.paramString({
   Key, //file name
   Bucket,
   Region})
-  
+
 // Get object from S3 Bucket
 url = `${host}/api/sign/s3?` + mapp.utils.paramString({
   command: 'DeleteObjectCommand',
   Key, //file name
   Bucket,
-  Region})  
+  Region})
 
 // Sign URL
 const signedURL = await mapp.utils.xhr({
@@ -63,6 +63,7 @@ The aws-sdk/client-s3 and aws-sdk/s3-request-presigner are optional dependencies
 */
 
 let clientSDK, getSignedUrl, credentials;
+const s3Clients = new Map();
 
 // Check if optional dependencies are available
 try {
@@ -105,10 +106,7 @@ The provided request params will be spread into the Command object created from 
 @returns {Promise<String>} The signed url associated to the request params.
 **/
 async function s3_signer(req, res) {
-  const S3Client = new clientSDK.S3Client({
-    credentials,
-    region: req.params.Region,
-  });
+  const S3Client = getS3Client(req.params.Region);
 
   if (!Object.hasOwn(clientSDK, req.params.command)) {
     return new Error(`S3 clientSDK command validation failed.`);
@@ -126,4 +124,20 @@ async function s3_signer(req, res) {
   } catch (err) {
     return new Error(`S3 Signer failed: ${err.toString()}`);
   }
+}
+
+function getS3Client(region = xyzEnv.AWS_REGION) {
+  const key = region || 'default';
+
+  if (!s3Clients.has(key)) {
+    s3Clients.set(
+      key,
+      new clientSDK.S3Client({
+        credentials,
+        region,
+      }),
+    );
+  }
+
+  return s3Clients.get(key);
 }

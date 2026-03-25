@@ -12,7 +12,7 @@ The [codi](https://github.com/RobAndrewHurst/codi) test framework is a required 
 
 Command Line Interface tests are typically executed on localhost for a clone of the XYZ repository to check whether XYZ API modules under development execute as outlined in their documentation. These tests should also be run as an action on any pull request to ensure the structural integrity of XYZ API endpoints.
 
-The codi test framework must be installed into the node_modules with `pnpm install`.
+The codi test framework must be installed into the node_modules with `bun install`.
 
 The codi CLI tests require experimental _module mocks_ which are available in Node 22+ [LTS].
 
@@ -433,7 +433,7 @@ try {
 2. Build the project:
 
    ```bash
-   pnpm _build
+   bun run _build
    ```
 
 3. Verify that:

@@ -17,7 +17,7 @@ const { Pool } = pg;
 
 import logger from './logger.js';
 
-const RETRY_LIMIT = xyzEnv.RETRY_LIMIT;
+const RETRY_LIMIT = Number.parseInt(xyzEnv.RETRY_LIMIT, 10) || 3;
 
 const RETRY_CODES = new Set([
   '53300', // too_many_connections
@@ -42,9 +42,12 @@ Object.keys(xyzEnv)
       connectionString: xyzEnv[key],
       connectionTimeoutMillis: 5000,
       dbs: id,
-      idleTimeoutMillis: 30000, // 5 seconds
+      idleTimeoutMillis: 30000,
       keepAlive: true, // 30 seconds
       max: 20, // Maximum number of clients in the pool
+      ssl: /sslmode=require/.test(xyzEnv[key])
+        ? { rejectUnauthorized: false }
+        : undefined,
     });
 
     // Handle pool errors
@@ -109,7 +112,7 @@ async function clientQuery(pool, query, variables, timeout) {
       });
 
       // Return error if not in retry whitelist
-      if (!RETRY_CODES.has(err.code)) return err;
+      if (!shouldRetry(err)) return err;
 
       retryCount++;
 
@@ -122,7 +125,7 @@ async function clientQuery(pool, query, variables, timeout) {
       lastError = err;
     } finally {
       if (client) {
-        client.release(true); // Force release in case of errors
+        client.release();
       }
     }
   }
@@ -141,4 +144,16 @@ Helper function to pause execution
 */
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function shouldRetry(err) {
+  if (RETRY_CODES.has(err?.code)) return true;
+
+  const message = String(err?.message || '');
+
+  return (
+    message.includes('Connection terminated unexpectedly') ||
+    message.includes('ECONNRESET') ||
+    message.includes('Connection terminated')
+  );
 }

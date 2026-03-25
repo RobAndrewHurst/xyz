@@ -34,7 +34,10 @@ for (const key in xyzEnv) {
 export default getFromModules;
 
 const cacheMap = new Map();
-let cacheTime = Date.now();
+const CLOUDFRONT_CACHE_TTL =
+  Number.parseInt(xyzEnv.CLOUDFRONT_CACHE_TTL || '', 10) || 60 * 1000;
+const CLOUDFRONT_CACHE_SIZE =
+  Number.parseInt(xyzEnv.CLOUDFRONT_CACHE_SIZE || '', 10) || 256;
 
 /**
 @function Cloudfront
@@ -58,24 +61,53 @@ async function Cloudfront(ref) {
 
   const url = ref.split(':')[1];
 
-  let response;
+  const now = Date.now();
+  const cached = cacheMap.get(url);
 
-  if (Date.now() - cacheTime < 60000) {
-    let cachedURL = cacheMap.get(url);
-
-    if (!cachedURL) {
-      cachedURL = cloudfront(url);
-      cacheMap.set(url, cachedURL);
-    }
-    response = await cachedURL;
-  } else {
-    // The cacheMap must be cleared to prevent cached resource never being updated between role requests or tests.
-    cacheTime = Date.now();
-    cacheMap.clear();
-    response = await cloudfront(url);
+  if (cached && cached.expiresAt > now && Object.hasOwn(cached, 'value')) {
+    refreshCacheEntry(url, cached);
+    return cached.value;
   }
 
+  if (cached?.promise) {
+    return await cached.promise;
+  }
+
+  const promise = cloudfront(url);
+
+  cacheMap.set(url, {
+    expiresAt: now + CLOUDFRONT_CACHE_TTL,
+    promise,
+  });
+
+  trimCache();
+
+  const response = await promise;
+
+  if (response instanceof Error) {
+    cacheMap.delete(url);
+    return response;
+  }
+
+  cacheMap.set(url, {
+    expiresAt: now + CLOUDFRONT_CACHE_TTL,
+    value: response,
+  });
+
   return response;
+}
+
+function refreshCacheEntry(url, entry) {
+  cacheMap.delete(url);
+  cacheMap.set(url, entry);
+}
+
+function trimCache() {
+  while (cacheMap.size > CLOUDFRONT_CACHE_SIZE) {
+    const oldestKey = cacheMap.keys().next().value;
+    if (!oldestKey) break;
+    cacheMap.delete(oldestKey);
+  }
 }
 
 function File(ref) {

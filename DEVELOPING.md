@@ -16,7 +16,7 @@ The executables `git` and `node` should be in your `PATH`.
 
 To install the Node.js dependencies run
 
-    pnpm install
+    bun install
 
 Please check the full list of dependencies as defined in the [package.json](https://github.com/GEOLYTIX/xyz/blob/main/package.json)
 
@@ -24,17 +24,17 @@ Please check the full list of dependencies as defined in the [package.json](http
 
 The MAPP and MAPP.UI library must be build with [esbuild](https://esbuild.github.io/) prior to launching the host.
 
-    pnpm exec esbuild ./lib/mapp.mjs ./lib/ui.mjs --bundle --minify --tree-shaking=false --sourcemap --format=iife --outdir=./public/js
+    bunx esbuild ./lib/mapp.mjs ./lib/ui.mjs --bundle --minify --tree-shaking=false --sourcemap --format=iife --outdir=./public/js
 
 The build command is stored in the package.json as `_build` script.
 
-    pnpm _build
+    bun run _build
 
 ESBuild must also be used to compile the CSS supporting the MAPP and MAPP.UI elements.
 
-    pnpm mapp_css
+    bun run mapp_css
 
-    pnpm ui_css
+    bun run ui_css
 
 ## Hot rebuild with nodemon & VSCode Chrome Debugger
 
@@ -50,7 +50,7 @@ The development environment uses nodemon to watch for changes and automatically 
   "env": {
     "NODE_ENV": "DEVELOPMENT"
   },
-  "exec": "pnpm exec concurrently \"node esbuild.config.mjs\" \"pnpm ui_css\" \"pnpm mapp_css\"",
+  "exec": "bunx concurrently \"node esbuild.config.mjs\" \"bun run ui_css\" \"bun run mapp_css\"",
   "events": {
     "start": "echo \"Watching for changes...\"",
     "exit": "echo \"Build complete\""
@@ -95,7 +95,7 @@ When changes are detected:
 1. Start the watch mode:
 
 ```bash
-  pnpm exec nodemon
+  bunx nodemon
 ```
 
 2. Nodemon will:
@@ -125,7 +125,7 @@ Along side this there is an optional `kill-watch` task that is used to tear down
     {
       "label": "start-watch",
       "type": "shell",
-      "command": "pnpm exec nodemon",
+      "command": "bunx nodemon",
       "isBackground": true,
       "problemMatcher": {
         "pattern": {
@@ -238,23 +238,23 @@ Here are some additional settings to use in your ./vscode/settings.json file
 
 The codebase uses [Biome](https://biomejs.dev/) to ensure code quality, consistent formatting, and adherence to coding guidelines. Biome is an all-in-one tool for linting, formatting, and more.
 
-To run Biome, you need to have the development dependencies installed. Make sure to run `pnpm install` in the root of the xyz directory.
+To run Biome, you need to have the development dependencies installed. Make sure to run `bun install` in the root of the xyz directory.
 
 To check for linting and formatting issues, run the following command in the root of the application:
 
-    pnpm exec biome check
+    bunx biome check
 
 To automatically fix issues (where possible), run:
 
-    pnpm exec biome check --write
+    bunx biome check --write
 
 You can also use Biome's formatting capabilities:
 
-    pnpm exec biome format
+    bunx biome format
 
 Or to format and apply fixes:
 
-    pnpm exec biome format --write
+    bunx biome format --write
 
 Many editors have Biome extensions or plugins for on-the-fly error highlighting and formatting. Please refer to the [Biome editor integration guide](https://biomejs.dev/docs/integrations/editors/) for setup instructions for your environment.
 
@@ -268,9 +268,9 @@ The version script will complete by executing the ESBuild process.
 
 ## Express
 
-[Express.js](https://expressjs.com/) will be installed by npm as a development dependency. You can run a zero config instance by loading the express.js script in your node runtime.
+[Bun](https://bun.sh/) provides the local host runtime for `express.js`. You can run a zero config instance by loading the script in Bun.
 
-    node express.js
+    bun express.js
 
 The default port is 3000. You can access the mapp interface on <http://localhost:3000/> in your browser.
 

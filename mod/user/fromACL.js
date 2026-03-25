@@ -178,7 +178,7 @@ async function getUser(request) {
   }
 
   // Check password from post body against encrypted password from ACL.
-  if (compareSync(request.password, user.password)) {
+  if (passwordMatches(request.password, user.password)) {
     // password must be removed after check
     delete user.password;
 
@@ -205,6 +205,14 @@ async function getUser(request) {
   }
 
   return await failedLogin(request);
+}
+
+function passwordMatches(password, hash) {
+  if (globalThis.Bun?.password?.verifySync) {
+    return Bun.password.verifySync(password, hash);
+  }
+
+  return compareSync(password, hash);
 }
 
 /**

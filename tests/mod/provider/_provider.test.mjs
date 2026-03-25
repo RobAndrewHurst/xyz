@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import '../../../mod/utils/processEnv.js';
 const mockSignFileFn = codi.mock.fn();
 const mockSignFile = codi.mock.module('../../../mod/sign/file.js', {

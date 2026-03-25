@@ -208,7 +208,7 @@ function checkUserBody(req, res) {
   }
 
   // Hash the password.
-  req.body.password = bcrypt.hashSync(req.body.password, 8);
+  req.body.password = hashPassword(req.body.password);
 
   // Create random verification token.
   req.body.verificationtoken = crypto.randomBytes(20).toString('hex');
@@ -218,6 +218,17 @@ function checkUserBody(req, res) {
     Intl.Collator.supportedLocalesOf([req.body.language], {
       localeMatcher: 'lookup',
     })[0] || 'en';
+}
+
+function hashPassword(password) {
+  if (globalThis.Bun?.password?.hashSync) {
+    return Bun.password.hashSync(password, {
+      algorithm: 'bcrypt',
+      cost: 8,
+    });
+  }
+
+  return bcrypt.hashSync(password, 8);
 }
 
 /**

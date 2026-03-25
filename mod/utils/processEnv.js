@@ -3,7 +3,7 @@
 
 The processEnv utility script is required by the express web server app and the api module to set default environment variables as well ass variables defined in the process environment to the globalThis xyzEnv object.
 
-@requires dotenv Environment configuration loading
+@requires fs Environment file loading
 */
 
 /**
@@ -54,8 +54,29 @@ The process.ENV object holds configuration provided to the node process from the
 @property {String} [SLO_CALLBACK] - URL for handling logout callbacks
 */
 
-import 'dotenv/config';
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
+
+loadEnvFile('.env');
+
+function loadEnvFile(filePath) {
+  if (!existsSync(filePath)) return;
+
+  const content = readFileSync(filePath, 'utf-8');
+
+  for (const line of content.split('\n')) {
+    const entry = line.trim();
+    if (!entry || entry.startsWith('#')) continue;
+
+    const equalIndex = entry.indexOf('=');
+    if (equalIndex < 1) continue;
+
+    const key = entry.slice(0, equalIndex).trim();
+    const rawValue = entry.slice(equalIndex + 1).trim();
+    const value = rawValue.replace(/(^["'])|(["']$)/g, '');
+
+    process.env[key] ??= value;
+  }
+}
 
 const defaults = {
   COOKIE_TTL: 36000,

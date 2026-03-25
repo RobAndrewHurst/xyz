@@ -18,7 +18,7 @@ XYZ/MAPP source code is annotated via [JSDoc](https://jsdoc.app/) markup languag
 
 We are using the [clean-jsdoc-theme](https://github.com/ankitskvmdam/clean-jsdoc-theme-example) which is installed as one of the devDependencies.
 
-The script to build the docs requires the jsdoc_mapp.json and jsdoc_xyz.json config files in the root directory. The script can be executed with `pnpm generate-docs`.
+The script to build the docs requires the jsdoc_mapp.json and jsdoc_xyz.json config files in the root directory. The script can be executed with `bun run generate-docs`.
 
 The documentation pages are generated in the local `/docs` directory. The docs directory is [git] ignored will be built in an automated action.
 

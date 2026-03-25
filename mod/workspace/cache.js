@@ -17,6 +17,7 @@ import merge from '../utils/merge.js';
 
 let cache = null;
 let timestamp = Infinity;
+let cachePromise = null;
 
 /**
 @function checkWorkspaceCache
@@ -37,11 +38,12 @@ export default function checkWorkspaceCache(force) {
   if (force) {
     // Reset the cache with force flag.
     cache = null;
+    cachePromise = null;
   }
 
   // cache is null on first request for workspace.
   // cacheWorkspace is async and must be awaited.
-  if (!cache) return cacheWorkspace();
+  if (!cache) return queueWorkspaceCache();
 
   // cacheWorkspace will set the current timestamp
   // and cache workspace outside export closure prior to returning workspace.
@@ -49,10 +51,20 @@ export default function checkWorkspaceCache(force) {
     // current time minus cached timestamp exceeds WORKSPACE_AGE
     cache = null;
 
-    return cacheWorkspace();
+    return queueWorkspaceCache();
   }
 
   return cache;
+}
+
+function queueWorkspaceCache() {
+  if (cachePromise) return cachePromise;
+
+  cachePromise = cacheWorkspace().finally(() => {
+    cachePromise = null;
+  });
+
+  return cachePromise;
 }
 
 import mail_templates from './templates/_mails.js';

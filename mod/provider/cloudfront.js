@@ -61,18 +61,70 @@ async function Fetch(url) {
     return signedURL;
   }
 
-  const timestamp = Date.now();
+  let response;
 
-  const response = await fetch(signedURL);
+  try {
+    response = await fetchWithRetry(signedURL);
+  } catch (error) {
+    if (!isConnectivityError(error)) {
+      return error;
+    }
 
-  logger(
-    `${Date.now() - timestamp}: ${response.status} - ${url}`,
-    'cloudfront',
-  );
+    const fallbackUrl = /^https?:\/\//i.test(url) ? url : `https://${url}`;
+
+    try {
+      response = await fetchWithRetry(fallbackUrl);
+      logger(`fallback unsigned fetch - ${url}`, 'cloudfront');
+    } catch (fallbackError) {
+      return fallbackError;
+    }
+  }
 
   if (response.status >= 300) return new Error(`${response.status} ${url}`);
 
   if (url.match(/\.json$/i)) return await response.json();
 
   return await response.text();
+}
+
+async function fetchWithRetry(resource) {
+  let lastError;
+
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    const started = Date.now();
+
+    try {
+      const response = await fetch(resource);
+      logger(
+        `${Date.now() - started}: ${response.status} - ${resource}`,
+        'cloudfront',
+      );
+      return response;
+    } catch (error) {
+      lastError = error;
+      logger(
+        `${Date.now() - started}: fail(${attempt}) - ${resource} - ${error?.code || error?.name || 'error'}`,
+        'cloudfront',
+      );
+
+      if (attempt < 3) {
+        await new Promise((resolve) => setTimeout(resolve, attempt * 150));
+      }
+    }
+  }
+
+  throw lastError;
+}
+
+function isConnectivityError(error) {
+  const code = String(error?.code || '');
+  const message = String(error?.message || '');
+
+  return (
+    code === 'ConnectionRefused' ||
+    code === 'ECONNREFUSED' ||
+    code === 'ECONNRESET' ||
+    message.includes('ConnectionRefused') ||
+    message.includes('Unable to connect')
+  );
 }

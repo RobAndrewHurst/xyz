@@ -7,14 +7,12 @@
 .vercel
 
 env
-# npm legacy files (replaced by pnpm)
+# legacy package manager lockfiles
 package-lock.json
-pnpm-lock.yaml
 yarn.lock
 
-# pnpm files
+# package manager files
 node_modules/*
-.pnpm-store/
 
 resources
 public/js/*

@@ -22,13 +22,11 @@ Other arguments you can provide the script are:
 - `--file=` - specifies the .env file location that you want to push.
 */
 
-import { config } from 'dotenv';
 import { existsSync, readFileSync } from 'fs';
 import https from 'https';
 import { join } from 'path';
 
-//get the vercel token from a separate .env file
-config({ path: '.env.vercel' });
+loadEnvFile('.env.vercel');
 
 // Get the command line arguments
 const args = process.argv.slice(2);
@@ -55,6 +53,26 @@ let isCustomEnvironment = false;
 
 //sync env method call.
 syncEnv().catch(console.error);
+
+function loadEnvFile(filePath) {
+  if (!existsSync(filePath)) return;
+
+  const content = readFileSync(filePath, 'utf8');
+
+  for (const line of content.split('\n')) {
+    const entry = line.trim();
+    if (!entry || entry.startsWith('#')) continue;
+
+    const equalIndex = entry.indexOf('=');
+    if (equalIndex < 1) continue;
+
+    const key = entry.slice(0, equalIndex).trim();
+    const rawValue = entry.slice(equalIndex + 1).trim();
+    const value = rawValue.replace(/(^["'])|(["']$)/g, '');
+
+    process.env[key] ??= value;
+  }
+}
 
 /**
 @function syncEnv
