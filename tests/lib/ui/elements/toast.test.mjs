@@ -1,15 +1,12 @@
+import { describe, expect, it } from 'vitest';
+
 export function toast() {
-  codi.describe(
-    { id: 'ui_elements_toast', name: 'Toast:', parentId: 'ui_elements' },
-    () => {
-      codi.it(
-        { name: 'Toast with no actions', parentId: 'ui_elements_toast' },
-        () => {
-          const toast = mapp.ui.elements.toast({
-            content: 'I am content',
-          });
-        },
-      );
-    },
-  );
+  describe('Toast:', () => {
+    it('Toast with no actions', () => {
+      const toast = mapp.ui.elements.toast({
+        content: 'I am content',
+      });
+      expect(toast).toBeDefined();
+    });
+  });
 }

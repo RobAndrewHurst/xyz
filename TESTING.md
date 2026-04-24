@@ -19,7 +19,7 @@ Codi was originally used for both browser and server-side tests. It provided `de
 
 Vitest solves all of these problems. It is a Vite-native test framework with built-in mocking (`vi.mock`, `vi.fn`), snapshot testing, code coverage (v8 provider), watch mode, parallel execution, and first-class ESM support — which is important since the XYZ codebase is `"type": "module"` throughout.
 
-> [!NOTE] Browser tests (`tests/lib/` and `tests/browser/`) still use Codi because they run inside the application in a real browser with access to the DOM, OpenLayers map, and the `mapp` global. These are loaded by the [Test Plugin](https://github.com/GEOLYTIX/xyz/blob/main/lib/plugins/test.mjs) and are not part of the Vitest pipeline.
+> [!NOTE] Browser tests that still require a live app, active user session, OpenLayers map instance, or backend integration remain outside the main Vitest CLI pipeline. The feasible browser-only subset now also runs in Vitest Browser Mode.
 
 ### What changed
 
@@ -101,7 +101,7 @@ export default defineConfig({
 
 Key points:
 
-- Only `tests/mod/**` and `tests/plugins/**` are included. Browser tests (`tests/lib/**`, `tests/browser/**`) are excluded — they use Codi and run in the browser.
+- Only `tests/mod/**` and `tests/plugins/**` are included in the default Node-based Vitest run. Browser tests (`tests/lib/**`, `tests/browser/**`) run separately through `pnpm test:browser` with Vitest Browser Mode.
 - `tests/setup.mjs` ensures `globalThis.xyzEnv` exists before any test module loads.
 - Tests run in parallel across files with a 10-second timeout per test.
 
@@ -389,6 +389,41 @@ Browser tests are designed for the browser environment with full access to:
 Browser tests still use [Codi](https://www.npmjs.com/package/codi-test-framework), which is loaded at runtime via ESM in the [Test Plugin](https://github.com/GEOLYTIX/xyz/blob/main/lib/plugins/test.mjs). Codi provides `describe`, `it`, `assertTrue`, `assertEqual`, and related assertion functions designed for in-browser execution.
 
 ### Running Browser Tests
+
+The browser-oriented tests that only need DOM + `mapp`/`ui` globals can be run in Vitest Browser Mode:
+
+```bash
+pnpm test:browser
+```
+
+This uses `vitest.browser.config.mjs` with the Playwright provider and a small Codi compatibility shim so existing exported browser suites can run with minimal edits.
+
+### Browser suites migrated to Vitest Browser Mode
+
+- `tests/lib/mapp.test.mjs`
+- `tests/lib/dictionaries/*.test.mjs`
+- browser-feasible utility suites under `tests/lib/utils/`:
+  `compose`, `gazetteer`, `jsonParser`, `keyvalue_dictionary`, `merge`,
+  `numericFormatter`, `paramString`, `temporal`, `versionCheck`
+- browser-feasible UI element suites under `tests/lib/ui/elements/`:
+  `alert`, `confirm`, `dialog`, `pills`, `toast`
+
+### Remaining manual integration-only browser tests
+
+The following still depend on a running app and/or live backend state, so they remain isolated from Vitest Browser Mode for now:
+
+- `tests/browser/integrity/**`
+- `tests/browser/local.test.mjs`
+- `tests/lib/layer/**`
+- `tests/lib/location/**`
+- `tests/lib/mapview/**`
+- `tests/lib/ui/layers/**`
+- `tests/lib/ui/locations/**`
+- `tests/lib/ui/elements/layerStyle.test.mjs`
+- `tests/lib/ui/elements/slider.test.mjs`
+- `tests/lib/ui/elements/dropdown.test.mjs`
+- `tests/lib/utils/queryParams.test.mjs`
+- network-dependent utility tests that still rely on external script/svg loading flows
 
 A [Test Plugin](https://github.com/GEOLYTIX/xyz/blob/main/lib/plugins/test.mjs) is provided to run tests in the browser.
 

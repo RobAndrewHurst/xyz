@@ -1,3 +1,5 @@
+import { describe, expect, it } from 'vitest';
+
 export const mappTest = {
   base,
 };
@@ -7,94 +9,20 @@ export const mappTest = {
  * @function base
  */
 function base() {
-  codi.describe({ name: 'Mapp:', id: 'mapp' }, () => {
-    codi.it({ name: 'Ensure we have base objects', parentId: 'mapp' }, () => {
-      codi.assertTrue(
-        Object.hasOwn(
-          mapp,
-          'version',
-          'The mapp object needs to have an version object',
-        ),
-      );
-      codi.assertTrue(
-        Object.hasOwn(
-          mapp,
-          'hash',
-          'The mapp object needs to have an hash object',
-        ),
-      );
-      codi.assertTrue(
-        Object.hasOwn(
-          mapp,
-          'host',
-          'The mapp object needs to have an host object',
-        ),
-      );
-
-      codi.assertTrue(
-        Object.hasOwn(
-          mapp,
-          'language',
-          'The mapp object needs to have an language object',
-        ),
-      );
-
-      codi.assertTrue(
-        Object.hasOwn(
-          mapp,
-          'dictionaries',
-          'The mapp object needs to have an dictionaries object',
-        ),
-      );
-      codi.assertTrue(
-        Object.hasOwn(
-          mapp,
-          'dictionary',
-          'The mapp object needs to have an dictionary object',
-        ),
-      );
-      codi.assertTrue(
-        Object.hasOwn(
-          mapp,
-          'hooks',
-          'The mapp object needs to have an hooks object',
-        ),
-      );
-      codi.assertTrue(
-        Object.hasOwn(
-          mapp,
-          'layer',
-          'The mapp object needs to have an layer object',
-        ),
-      );
-      codi.assertTrue(
-        Object.hasOwn(
-          mapp,
-          'location',
-          'The mapp object needs to have an location object',
-        ),
-      );
-      codi.assertTrue(
-        Object.hasOwn(
-          mapp,
-          'Mapview',
-          'The mapp object needs to have an Mapview object',
-        ),
-      );
-      codi.assertTrue(
-        Object.hasOwn(
-          mapp,
-          'utils',
-          'The mapp object needs to have an utils object',
-        ),
-      );
-      codi.assertTrue(
-        Object.hasOwn(
-          mapp,
-          'plugins',
-          'The mapp object needs to have an plugins object',
-        ),
-      );
+  describe('Mapp:', () => {
+    it('Ensure we have base objects', () => {
+      expect(Object.hasOwn(mapp, 'version')).toBe(true);
+      expect(Object.hasOwn(mapp, 'hash')).toBe(true);
+      expect(Object.hasOwn(mapp, 'host')).toBe(true);
+      expect(Object.hasOwn(mapp, 'language')).toBe(true);
+      expect(Object.hasOwn(mapp, 'dictionaries')).toBe(true);
+      expect(Object.hasOwn(mapp, 'dictionary')).toBe(true);
+      expect(Object.hasOwn(mapp, 'hooks')).toBe(true);
+      expect(Object.hasOwn(mapp, 'layer')).toBe(true);
+      expect(Object.hasOwn(mapp, 'location')).toBe(true);
+      expect(Object.hasOwn(mapp, 'Mapview')).toBe(true);
+      expect(Object.hasOwn(mapp, 'utils')).toBe(true);
+      expect(Object.hasOwn(mapp, 'plugins')).toBe(true);
     });
   });
 }

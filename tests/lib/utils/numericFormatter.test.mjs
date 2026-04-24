@@ -1,3 +1,5 @@
+import { describe, expect, it } from 'vitest';
+
 /**
  * @module utils/numericFormatter
  */
@@ -7,185 +9,98 @@
  * @function numericFormatterTest
  */
 export function numericFormatter() {
-  codi.describe(
-    {
-      name: 'numericFormatter Test:',
-      id: 'utils_numeric_formatter',
-      parentId: 'utils',
-    },
-    () => {
-      const params = {
-        value: 654321.987,
-        prefix: '$',
-        formatterParams: {
-          locale: 'en-UK',
-        },
-      };
+  describe('numericFormatter Test:', () => {
+    const params = {
+      value: 654321.987,
+      prefix: '$',
+      formatterParams: {
+        locale: 'en-UK',
+      },
+    };
 
-      const expected_unformated_value = 654321.99;
-      let expected_formated_value = '$654,321.99';
-      /**
-       * ### Should format UK locale Numeric Values
-       * This test is used to check if a numeric value gets formatted to the correct localised UK string.
-       * @function it
-       */
-      codi.it(
-        {
-          name: 'Should format UK locale Numeric Values',
-          parentId: 'utils_numeric_formatter',
-        },
-        () => {
-          const formattedValue = mapp.utils.formatNumericValue(params);
-          codi.assertEqual(
-            formattedValue,
-            expected_formated_value,
-            `We expect the value to equal ${expected_formated_value}, we received ${formattedValue}`,
-          );
-        },
-      );
-      /**
-       * ### Should unformat UK locale string
-       * This test is used to check if a localised string to UK returns the correct string.
-       * @function it
-       */
-      codi.it(
-        {
-          name: 'Should unformat UK locale strings',
-          parentId: 'utils_numeric_formatter',
-        },
-        () => {
-          const unformattedString = mapp.utils.unformatStringValue(params);
-          codi.assertEqual(
-            unformattedString,
-            expected_unformated_value,
-            `We expect the value to equal ${expected_unformated_value}, we received ${unformattedString}`,
-          );
-        },
-      );
-      /**
-       * ### Should format DE locale Numeric Values
-       * This test is used to check if a numeric value gets formatted to the correct localised DE string.
-       * @function it
-       */
-      codi.it(
-        {
-          name: 'Should format DE locale Numeric Values',
-          parentId: 'utils_numeric_formatter',
-        },
-        () => {
-          //Settings the locale to 'DE'
-          params.formatterParams.locale = 'DE';
-          expected_formated_value = '$654.321,99';
+    const expected_unformated_value = 654321.99;
+    let expected_formated_value = '$654,321.99';
+    /**
+     * ### Should format UK locale Numeric Values
+     * This test is used to check if a numeric value gets formatted to the correct localised UK string.
+     * @function it
+     */
+    it('Should format UK locale Numeric Values', () => {
+      const formattedValue = mapp.utils.formatNumericValue(params);
+      expect(formattedValue).toEqual(expected_formated_value);
+    });
+    /**
+     * ### Should unformat UK locale string
+     * This test is used to check if a localised string to UK returns the correct string.
+     * @function it
+     */
+    it('Should unformat UK locale strings', () => {
+      const unformattedString = mapp.utils.unformatStringValue(params);
+      expect(unformattedString).toEqual(expected_unformated_value);
+    });
+    /**
+     * ### Should format DE locale Numeric Values
+     * This test is used to check if a numeric value gets formatted to the correct localised DE string.
+     * @function it
+     */
+    it('Should format DE locale Numeric Values', () => {
+      //Settings the locale to 'DE'
+      params.formatterParams.locale = 'DE';
+      expected_formated_value = '$654.321,99';
 
-          const formattedValue = mapp.utils.formatNumericValue(params);
-          codi.assertEqual(
-            formattedValue,
-            expected_formated_value,
-            `We expect the value to equal ${expected_formated_value}, we received ${formattedValue}`,
-          );
-        },
-      );
-      /**
-       * ### Should unformat DE locale string
-       * This test is used to check if a localised string to DE returns the correct string.
-       * @function it
-       */
-      codi.it(
-        {
-          name: 'Should unformat DE locale strings',
-          parentId: 'utils_numeric_formatter',
-        },
-        () => {
-          const unformattedString = mapp.utils.unformatStringValue(params);
-          codi.assertEqual(
-            unformattedString,
-            expected_unformated_value,
-            `We expect the value to equal ${expected_unformated_value}, we received ${unformattedString}`,
-          );
-        },
-      );
+      const formattedValue = mapp.utils.formatNumericValue(params);
+      expect(formattedValue).toEqual(expected_formated_value);
+    });
+    /**
+     * ### Should unformat DE locale string
+     * This test is used to check if a localised string to DE returns the correct string.
+     * @function it
+     */
+    it('Should unformat DE locale strings', () => {
+      const unformattedString = mapp.utils.unformatStringValue(params);
+      expect(unformattedString).toEqual(expected_unformated_value);
+    });
 
-      /**
-       * ### Should format PL locale Numeric Values
-       * This test is used to check if a numeric value gets formatted to the correct localised PL string.
-       * @function it
-       */
-      codi.it(
-        {
-          name: 'Should format PL locale Numeric Values',
-          parentId: 'utils_numeric_formatter',
-        },
-        () => {
-          //Settings the locale to 'DE'
-          params.formatterParams.locale = 'PL';
-          expected_formated_value = '$654 321,99';
+    /**
+     * ### Should format PL locale Numeric Values
+     * This test is used to check if a numeric value gets formatted to the correct localised PL string.
+     * @function it
+     */
+    it('Should format PL locale Numeric Values', () => {
+      //Settings the locale to 'DE'
+      params.formatterParams.locale = 'PL';
+      expected_formated_value = '$654 321,99';
 
-          const formattedValue = mapp.utils.formatNumericValue(params);
-          codi.assertEqual(
-            formattedValue,
-            expected_formated_value,
-            `We expect the value to equal ${expected_formated_value}, we received ${formattedValue}`,
-          );
-        },
-      );
+      const formattedValue = mapp.utils.formatNumericValue(params);
+      expect(formattedValue).toEqual(expected_formated_value);
+    });
 
-      codi.it(
-        {
-          name: 'Should unformat PL locale strings',
-          parentId: 'utils_numeric_formatter',
-        },
-        () => {
-          mapp.utils.formatNumericValue(params);
+    it('Should unformat PL locale strings', () => {
+      mapp.utils.formatNumericValue(params);
 
-          const unformattedString = mapp.utils.unformatStringValue(params);
-          codi.assertEqual(
-            unformattedString,
-            expected_unformated_value,
-            `We expect the value to equal ${expected_unformated_value}, we received ${unformattedString}`,
-          );
-        },
-      );
+      const unformattedString = mapp.utils.unformatStringValue(params);
+      expect(unformattedString).toEqual(expected_unformated_value);
+    });
 
-      /**
-       * ### Should format RUB locale Numeric Values
-       * This test is used to check if a numeric value gets formatted to the correct localised PL string.
-       * @function it
-       */
-      codi.it(
-        {
-          name: 'Should format RUB locale Numeric Values',
-          parentId: 'utils_numeric_formatter',
-        },
-        () => {
-          //Settings the locale to 'DE'
-          params.formatterParams.locale = 'RUB';
-          expected_formated_value = '$654,321.99';
+    /**
+     * ### Should format RUB locale Numeric Values
+     * This test is used to check if a numeric value gets formatted to the correct localised PL string.
+     * @function it
+     */
+    it('Should format RUB locale Numeric Values', () => {
+      //Settings the locale to 'DE'
+      params.formatterParams.locale = 'RUB';
+      expected_formated_value = '$654,321.99';
 
-          const formattedValue = mapp.utils.formatNumericValue(params);
-          codi.assertEqual(
-            formattedValue,
-            expected_formated_value,
-            `We expect the value to equal ${expected_formated_value}, we received ${formattedValue}`,
-          );
-        },
-      );
+      const formattedValue = mapp.utils.formatNumericValue(params);
+      expect(formattedValue).toEqual(expected_formated_value);
+    });
 
-      codi.it(
-        {
-          name: 'Should unformat RUB locale strings',
-          parentId: 'utils_numeric_formatter',
-        },
-        () => {
-          mapp.utils.formatNumericValue(params);
+    it('Should unformat RUB locale strings', () => {
+      mapp.utils.formatNumericValue(params);
 
-          const unformattedString = mapp.utils.unformatStringValue(params);
-          codi.assertEqual(
-            unformattedString,
-            expected_unformated_value,
-            `We expect the value to equal ${expected_unformated_value}, we received ${unformattedString}`,
-          );
-        },
-      );
-    },
-  );
+      const unformattedString = mapp.utils.unformatStringValue(params);
+      expect(unformattedString).toEqual(expected_unformated_value);
+    });
+  });
 }
