@@ -76,12 +76,12 @@ For the standard local server:
 pnpm dev
 ```
 
-That runs the root `server.js` with the Node inspector enabled.
+That runs the XYZ app server at `apps/xyz/server.js` with the Node inspector enabled.
 
 If you do not want the inspector, run:
 
 ```bash
-node server.js
+node apps/xyz/server.js
 ```
 
 Open the app at:
@@ -168,13 +168,17 @@ Use the exact connection and ACL values required by your workspace and auth setu
 
 ## Optional SAML setup
 
-The root server mounts SAML routes from `apps/saml`.
+The SAML dev server mounts SAML routes from `apps/saml` onto the XYZ app server.
 
 If you need SAML locally:
 
 1. Install dependencies with `pnpm install`.
 2. Add the required `SAML_*` variables to `.env`.
-3. Start the root server as usual.
+3. Start the SAML dev server:
+
+```bash
+pnpm dev:saml
+```
 
 Mounted routes include:
 
