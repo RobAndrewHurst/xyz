@@ -2,21 +2,21 @@
 
 ## What this repository contains
 
-This repository is a `pnpm` workspace with three local packages:
+This repository is a `pnpm` monorepo workspace with three apps:
 
-- `apps/xyz`: the core XYZ API and Express server logic
-- `apps/mapp`: the MAPP frontend library bundle
-- `apps/saml`: optional SAML routes mounted by the root server
+- `apps/xyz`: An Express server for the XYZ API.
+- `apps/mapp`: Library source files for the MAPP frontend.
+- `apps/saml`: Optional SAML routes mounted by the root server
 
-The repository root wires those packages together and exposes the commands you will usually run during local development.
+Dependencies defined in the apps packages will be referenced in the monorepo package.json.
 
 ## Prerequisites
 
 Install these tools before you start:
 
 - `git`
-- `node` `22+`
-- `pnpm` `10.10.0` or a compatible `pnpm 10`
+- `node`: 22+
+- `pnpm`: 10+
 
 Check your versions:
 
@@ -27,13 +27,9 @@ pnpm --version
 
 ## Clone and install
 
-```bash
-git clone https://github.com/GEOLYTIX/xyz.git
-cd xyz
-pnpm install
-```
+Use `git clone https://github.com/GEOLYTIX/xyz.git` to clone the repository into a new directory `xyz`.
 
-This installs the workspace dependencies for the root package and all apps under `apps/*`.
+Change into the directory and use `pnpm install` to install any monorepo dependencies defined or referenced in the package.json
 
 ## Minimum local configuration
 
@@ -165,25 +161,6 @@ PRIVATE=localhost:5432|user:password|acl_table
 ```
 
 Use the exact connection and ACL values required by your workspace and auth setup.
-
-## Optional SAML setup
-
-The root server mounts SAML routes from `apps/saml`.
-
-If you need SAML locally:
-
-1. Install dependencies with `pnpm install`.
-2. Add the required `SAML_*` variables to `.env`.
-3. Start the root server as usual.
-
-Mounted routes include:
-
-- `/saml/login`
-- `/saml/logout`
-- `/saml/metadata`
-- `/saml/acs`
-
-If `DIR` is set, those routes are mounted under that base path.
 
 ## Troubleshooting
 

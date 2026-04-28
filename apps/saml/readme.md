@@ -1,6 +1,25 @@
+## Optional SAML setup
+
 The saml.js turbo application [module] can be imported into an express app script alongside the xyz express app.
 
 This allows to add additional routes to the xyz express app for saml authentication.
+
+The root server mounts SAML routes from `apps/saml`.
+
+If you need SAML locally:
+
+1. Install dependencies with `pnpm install`.
+2. Add the required `SAML_*` variables to `.env`.
+3. Start the root server as usual.
+
+Mounted routes include:
+
+- `/saml/login`
+- `/saml/logout`
+- `/saml/metadata`
+- `/saml/acs`
+
+If `DIR` is set, those routes are mounted under that base path.
 
 ```js
 import app from '@geolytix/xyz-app/server';
