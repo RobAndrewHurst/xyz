@@ -72,12 +72,12 @@ For the standard local server:
 pnpm dev
 ```
 
-That runs the root `server.js` with the Node inspector enabled.
+That runs the XYZ app server at `apps/xyz/server.js` with the Node inspector enabled.
 
 If you do not want the inspector, run:
 
 ```bash
-node server.js
+node apps/xyz/server.js
 ```
 
 Open the app at:
@@ -99,7 +99,7 @@ With the minimal `.env` above, the server should boot and serve the built fronte
 Useful routes to test locally:
 
 - `/`: default application view
-- `/api/workspace`: resolved workspace payload
+- `/api/workspace/locale`: resolved workspace payload
 - `/public/js/lib/mapp.js`: bundled MAPP library asset
 
 The sample `public/workspace.json` includes a minimal OpenStreetMap layer, which is enough for a basic local smoke test.
