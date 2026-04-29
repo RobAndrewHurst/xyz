@@ -4,11 +4,16 @@
 
 This repository is a `pnpm` monorepo workspace with three apps:
 
-- `apps/xyz`: An Express server for the XYZ API.
-- `apps/mapp`: Library source files for the MAPP frontend.
-- `apps/saml`: Optional SAML routes mounted by the root server
+- `apps/xyz`: the core XYZ API and Express server logic
+- `apps/mapp`: the MAPP frontend library bundle
+- `apps/saml`: optional SAML routes mounted by the SAML dev server
 
-Dependencies defined in the apps packages will be referenced in the monorepo package.json.
+The repository root wires those packages together and exposes the commands you will usually run during local development.
+For app-specific usage, see each app README:
+
+- [XYZ app](./apps/xyz/README.md)
+- [MAPP app](./apps/mapp/README.md)
+- [SAML app](./apps/saml/README.md)
 
 ## Prerequisites
 
@@ -114,18 +119,9 @@ Run all builds:
 pnpm build
 ```
 
-Rebuild the CSS bundles only:
+For MAPP-specific build details, see [apps/mapp/README.md](./apps/mapp/README.md).
 
-```bash
-pnpm mapp_css
-pnpm ui_css
-```
-
-Generate JSDoc output:
-
-```bash
-pnpm generate-docs
-```
+For JSDoc generation, see [DOCUMENTATION.md](./DOCUMENTATION.md).
 
 ## Run tests
 
@@ -161,6 +157,21 @@ PRIVATE=localhost:5432|user:password|acl_table
 ```
 
 Use the exact connection and ACL values required by your workspace and auth setup.
+
+## Optional SAML setup
+
+The SAML dev server mounts SAML routes from `apps/saml` onto the XYZ app server.
+For SAML-specific configuration and routes, see [apps/saml/README.md](./apps/saml/README.md).
+
+If you need SAML locally:
+
+1. Install dependencies with `pnpm install`.
+2. Add the required `SAML_*` variables to `.env`.
+3. Start the SAML dev server:
+
+```bash
+pnpm dev:saml
+```
 
 ## Troubleshooting
 
