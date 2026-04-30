@@ -22,9 +22,9 @@ Other arguments you can provide the script are:
 - `--file=` - specifies the .env file location that you want to push.
 */
 
+import { existsSync, readFileSync } from 'node:fs';
+import https from 'node:https';
 import { config } from 'dotenv';
-import { existsSync, readFileSync } from 'fs';
-import https from 'https';
 import { join } from 'path';
 
 //get the vercel token from a separate .env file
