@@ -33,21 +33,34 @@ export default async function provider(req, res) {
   };
 
   if (!Object.hasOwn(provider, req.params.provider)) {
-    return res
-      .status(404)
-      .send(`Failed to validate 'provider=${req.params.provider}' param.`);
+    return res.status(404).send('Failed to validate provider param.');
   }
 
   if (provider[req.params.provider] === null) {
-    return res
-      .status(405)
-      .send(`Provider: ${req.params.provider} is not configured.`);
+    return res.status(405).send('Provider is not configured.');
   }
 
   const response = await provider[req.params.provider](req, res);
 
-  req.params.content_type &&
-    res.setHeader('content-type', req.params.content_type);
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+
+  if (response instanceof Error) {
+    return res.status(500).send('Provider request failed.');
+  }
+
+  if (typeof response === 'object') {
+    return res.json(response);
+  }
+
+  const contentType = getContentType(req.params.content_type);
+
+  res.setHeader('content-type', contentType);
 
   res.send(response);
+}
+
+function getContentType(contentType) {
+  const allowedContentTypes = new Set(['application/json', 'text/plain']);
+
+  return allowedContentTypes.has(contentType) ? contentType : 'text/plain';
 }
