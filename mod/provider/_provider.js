@@ -18,6 +18,8 @@ The provider method looks up a provider module method matching the provider requ
 
 The response from the method is returned with the HTTP response.
 
+Object responses are returned as JSON. String responses are returned as text unless the requested resource URL ends in `.js` or `.mjs`, in which case `text/javascript` is used so plugins can be loaded as ES modules from any provider. User supplied JavaScript content types are ignored for non-JavaScript resource URLs.
+
 @param {req} req HTTP request.
 @param {Object} res HTTP response.
 @param {Object} req.params Request parameter.
@@ -52,15 +54,23 @@ export default async function provider(req, res) {
     return res.json(response);
   }
 
-  const contentType = getContentType(req.params.content_type);
+  const contentType = getContentType(req.params);
 
   res.setHeader('content-type', contentType);
 
   res.send(response);
 }
 
-function getContentType(contentType) {
+function getContentType(params) {
   const allowedContentTypes = new Set(['application/json', 'text/plain']);
 
-  return allowedContentTypes.has(contentType) ? contentType : 'text/plain';
+  // Plugin modules can be served by any provider, but executable MIME types
+  // must be derived from the requested resource rather than user input.
+  if (params.url?.match(/\.m?js(?:[?#].*)?$/i)) {
+    return 'text/javascript';
+  }
+
+  return allowedContentTypes.has(params.content_type)
+    ? params.content_type
+    : 'text/plain';
 }

@@ -101,5 +101,38 @@ describe('Provider:', () => {
         expect(headers).toEqual(expectedValues[providerName].headers);
       });
     }
+
+    it('serves JavaScript resources as a module MIME type', async () => {
+      const { req, res } = createMocks({
+        params: {
+          provider: 'cloudfront',
+          url: 'plugins/plugin.mjs',
+        },
+      });
+
+      await provider(req, res);
+
+      expect(res.getHeaders()).toEqual({
+        'content-type': 'text/javascript',
+        'x-content-type-options': 'nosniff',
+      });
+    });
+
+    it('does not serve arbitrary JavaScript content types', async () => {
+      const { req, res } = createMocks({
+        params: {
+          provider: 'cloudfront',
+          content_type: 'text/javascript',
+          url: 'content/page.html',
+        },
+      });
+
+      await provider(req, res);
+
+      expect(res.getHeaders()).toEqual({
+        'content-type': 'text/plain',
+        'x-content-type-options': 'nosniff',
+      });
+    });
   });
 });
