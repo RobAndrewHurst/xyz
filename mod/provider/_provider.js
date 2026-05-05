@@ -14,7 +14,7 @@ import cloudfront from './cloudfront.js';
 import file from './file.js';
 import s3 from './s3.js';
 
-const provider = {
+const providerModules = {
   cloudfront,
   file,
   s3,
@@ -42,15 +42,15 @@ The content type is derived from the requested resource if the URL ends with a J
 @returns {Promise} The promise resolves into the response from the provider modules method.
 */
 export default async function provider(req, res) {
-  if (!Object.hasOwn(provider, req.params.provider)) {
+  if (!Object.hasOwn(providerModules, req.params.provider)) {
     return res.status(404).send('Failed to validate provider param.');
   }
 
-  if (provider[req.params.provider] === null) {
+  if (providerModules[req.params.provider] === null) {
     return res.status(405).send('Provider is not configured.');
   }
 
-  const response = await provider[req.params.provider](req, res);
+  const response = await providerModules[req.params.provider](req, res);
 
   res.setHeader('X-Content-Type-Options', 'nosniff');
 
