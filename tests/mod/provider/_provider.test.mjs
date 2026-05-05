@@ -50,9 +50,7 @@ describe('Provider:', () => {
     const result = await provider(req, res);
 
     expect(result.code).toEqual(404);
-    expect(result.message).toEqual(
-      "Failed to validate 'provider=mongo' param.",
-    );
+    expect(result.message).toEqual('Failed to validate provider param.');
   });
 
   describe('Base Provider Tests', () => {
@@ -63,7 +61,8 @@ describe('Provider:', () => {
         data: 'Look at me go from the file provider fam!',
         content_type: 'application/text',
         headers: {
-          'content-type': 'application/text',
+          'content-type': 'text/plain',
+          'x-content-type-options': 'nosniff',
         },
       },
       cloudfront: {
@@ -71,13 +70,15 @@ describe('Provider:', () => {
         content_type: 'application/json',
         headers: {
           'content-type': 'application/json',
+          'x-content-type-options': 'nosniff',
         },
       },
       s3: {
         data: 'http://localhost:3000/',
         content_type: 'application/text',
         headers: {
-          'content-type': 'application/text',
+          'content-type': 'text/plain',
+          'x-content-type-options': 'nosniff',
         },
       },
     };
@@ -100,5 +101,38 @@ describe('Provider:', () => {
         expect(headers).toEqual(expectedValues[providerName].headers);
       });
     }
+
+    it('serves JavaScript resources as a module MIME type', async () => {
+      const { req, res } = createMocks({
+        params: {
+          provider: 'cloudfront',
+          url: 'plugins/plugin.mjs',
+        },
+      });
+
+      await provider(req, res);
+
+      expect(res.getHeaders()).toEqual({
+        'content-type': 'text/javascript',
+        'x-content-type-options': 'nosniff',
+      });
+    });
+
+    it('does not serve arbitrary JavaScript content types', async () => {
+      const { req, res } = createMocks({
+        params: {
+          provider: 'cloudfront',
+          content_type: 'text/javascript',
+          url: 'content/page.html',
+        },
+      });
+
+      await provider(req, res);
+
+      expect(res.getHeaders()).toEqual({
+        'content-type': 'text/plain',
+        'x-content-type-options': 'nosniff',
+      });
+    });
   });
 });
