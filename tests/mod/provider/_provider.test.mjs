@@ -11,7 +11,8 @@ vi.mock('../../../mod/sign/file.js', () => ({
 
 vi.mock('../../../mod/provider/file.js', () => ({
   default: (ref) => {
-    ref = '';
+    if (ref.params?.url === 'object.json') return { test: true };
+    if (ref.params?.url === 'plain.txt') return '<script>&';
     return String('Look at me go from the file provider fam!');
   },
 }));
@@ -25,6 +26,7 @@ vi.mock('../../../mod/provider/cloudfront.js', () => ({
 
 vi.mock('../../../mod/provider/s3.js', () => ({
   default: (ref) => {
+    if (ref.params?.url === 'provider-error.txt') return new Error('failed');
     ref = '';
     return 'http://localhost:3000/';
   },
@@ -118,6 +120,57 @@ describe('Provider:', () => {
       });
     });
 
+    it('serves JavaScript resources with query strings as a module MIME type', async () => {
+      const { req, res } = createMocks({
+        params: {
+          provider: 'cloudfront',
+          content_type: 'text/plain',
+          url: 'plugins/plugin.js?version=1',
+        },
+      });
+
+      await provider(req, res);
+
+      expect(res.getHeaders()).toEqual({
+        'content-type': 'text/javascript',
+        'x-content-type-options': 'nosniff',
+      });
+    });
+
+    it('sends object provider responses as JSON', async () => {
+      const { req, res } = createMocks({
+        params: {
+          provider: 'file',
+          url: 'object.json',
+        },
+      });
+
+      await provider(req, res);
+
+      expect(res._getJSONData()).toEqual({ test: true });
+      expect(res.getHeaders()).toEqual({
+        'content-type': 'application/json',
+        'x-content-type-options': 'nosniff',
+      });
+    });
+
+    it('fails when the provider returns an error', async () => {
+      const { req, res } = createMocks({
+        params: {
+          provider: 's3',
+          url: 'provider-error.txt',
+        },
+      });
+
+      await provider(req, res);
+
+      expect(res.statusCode).toEqual(500);
+      expect(res._getData()).toEqual('Provider request failed.');
+      expect(res.getHeaders()).toEqual({
+        'x-content-type-options': 'nosniff',
+      });
+    });
+
     it('does not serve arbitrary JavaScript content types', async () => {
       const { req, res } = createMocks({
         params: {
@@ -129,6 +182,24 @@ describe('Provider:', () => {
 
       await provider(req, res);
 
+      expect(res.getHeaders()).toEqual({
+        'content-type': 'text/plain',
+        'x-content-type-options': 'nosniff',
+      });
+    });
+
+    it('sends plain text provider responses', async () => {
+      const { req, res } = createMocks({
+        params: {
+          provider: 'file',
+          content_type: 'text/plain',
+          url: 'plain.txt',
+        },
+      });
+
+      await provider(req, res);
+
+      expect(res._getData()).toEqual('<script>&');
       expect(res.getHeaders()).toEqual({
         'content-type': 'text/plain',
         'x-content-type-options': 'nosniff',
