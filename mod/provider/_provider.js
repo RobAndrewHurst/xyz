@@ -1,13 +1,25 @@
 /**
-@module /provider
+## /provider
 
-@description
-Functions for handling 3rd party service provider requests
+The provider module imports the cloudinary, file, and s3 provider modules and exports a provider method that looks up a provider module method matching the provider request parameter and passes the req/res objects as argument to the matched method.
+
+@requires /cloudinary
+@requires /file
+@requires /s3
+
+@module /provider
 */
 
 import cloudfront from './cloudfront.js';
 import file from './file.js';
 import s3 from './s3.js';
+
+const provider = {
+  cloudfront,
+  file,
+  s3,
+};
+const allowedContentTypes = new Set(['application/json', 'text/plain']);
 
 /**
 @function provider
@@ -16,24 +28,20 @@ import s3 from './s3.js';
 @description
 The provider method looks up a provider module method matching the provider request parameter and passes the req/res objects as argument to the matched method.
 
-The response from the method is returned with the HTTP response.
+The response from the method is parsed as JSON if the response is an object.
 
-Object responses are returned as JSON. String responses are returned as text unless the requested resource URL ends in `.js` or `.mjs`, in which case `text/javascript` is used so plugins can be loaded as ES modules from any provider. User supplied JavaScript content types are ignored for non-JavaScript resource URLs.
+The default content type is `text/plain` but can be overridden by the `content_type` request parameter if the value is in the allowed content types list.
+
+The content type is derived from the requested resource if the URL ends with a JavaScript extension.
 
 @param {req} req HTTP request.
 @param {Object} res HTTP response.
 @param {Object} req.params Request parameter.
-@param {string} params.signer Provider module to handle the request.
+@param {string} params.provider Provider module to handle the request.
 
 @returns {Promise} The promise resolves into the response from the provider modules method.
 */
 export default async function provider(req, res) {
-  const provider = {
-    cloudfront,
-    file,
-    s3,
-  };
-
   if (!Object.hasOwn(provider, req.params.provider)) {
     return res.status(404).send('Failed to validate provider param.');
   }
@@ -54,23 +62,16 @@ export default async function provider(req, res) {
     return res.json(response);
   }
 
-  const contentType = getContentType(req.params);
+  let contentType = 'text/plain';
+
+  // Executable MIME types must be derived from the requested resource rather than user input.
+  if (params.url?.match(/\.m?js(?:[?#].*)?$/i)) {
+    contentType = 'text/javascript';
+  } else if (allowedContentTypes.has(params.content_type)) {
+    contentType = params.content_type;
+  }
 
   res.setHeader('content-type', contentType);
 
   res.send(response);
-}
-
-function getContentType(params) {
-  const allowedContentTypes = new Set(['application/json', 'text/plain']);
-
-  // Plugin modules can be served by any provider, but executable MIME types
-  // must be derived from the requested resource rather than user input.
-  if (params.url?.match(/\.m?js(?:[?#].*)?$/i)) {
-    return 'text/javascript';
-  }
-
-  return allowedContentTypes.has(params.content_type)
-    ? params.content_type
-    : 'text/plain';
 }
