@@ -40,7 +40,7 @@ jobs:
       - name: Install dependencies
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         run: pnpm install --ignore-scripts
-      - name: Generate test coverage
+      - name: Test & Coverage
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         run: pnpm test:coverage
       - name: SonarQube Scan
