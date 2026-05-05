@@ -65,10 +65,10 @@ export default async function provider(req, res) {
   let contentType = 'text/plain';
 
   // Executable MIME types must be derived from the requested resource rather than user input.
-  if (params.url?.match(/\.m?js(?:[?#].*)?$/i)) {
+  if (req.params.url?.match(/\.m?js(?:[?#].*)?$/i)) {
     contentType = 'text/javascript';
-  } else if (allowedContentTypes.has(params.content_type)) {
-    contentType = params.content_type;
+  } else if (allowedContentTypes.has(req.params.content_type)) {
+    contentType = req.params.content_type;
   }
 
   res.setHeader('content-type', contentType);
