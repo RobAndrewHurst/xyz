@@ -62,7 +62,7 @@ Dynamic module imports reduce the need to bundle 3rd party libraries such as [Ta
 
 [brcypt](https://github.com/kelektiv/node.bcrypt.js) - A library to help you hash passwords.
 
-[dotenv](https://github.com/motdotla/dotenv) - Dotenv is a zero-dependency module that loads environment variables from a .env file into process.env.
+[Varlock](https://varlock.dev/) - Varlock loads and validates environment variables from `.env` files using the project `.env.schema`.
 
 [jsonwebtoken](https://github.com/auth0/node-jsonwebtoken) - A Node implementation of JSON Web Token.
 
@@ -80,7 +80,9 @@ Dynamic module imports reduce the need to bundle 3rd party libraries such as [Ta
 
 Following development dependencies are required to build the library and run a local instance of the XYZ host.
 
-[dotenv](https://www.npmjs.com/package/dotenv) - Dotenv is a zero-dependency module that loads environment variables from a .env file into process.env.
+[Express](https://www.npmjs.com/package/express) - Fast, unopinionated, minimalist web framework for Node.
+
+[cookie-parser](https://www.npmjs.com/package/cookie-parser) - Parse cookie header for express.js.
 
 [esbuild](https://www.npmjs.com/package/esbuild) - A JavaScript bundler and minifier.
 
