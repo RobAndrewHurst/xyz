@@ -28,11 +28,6 @@
     "@geolytix/xyz-auth-app": "workspace:*",
     "@geolytix/xyz-app": "workspace:*",
     "@geolytix/xyz-saml-app": "workspace:*"
-    "@varlock/google-secret-manager-plugin": "^1.1.0",
-    "bcrypt": "^6.0.0",
-    "jsonwebtoken": "^9.0.3",
-    "pg": "~8.15.6",
-    "varlock": "^1.1.0"
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:",

@@ -29,6 +29,8 @@
     "express": "catalog:",
     "express-rate-limit": "catalog:",
     "jsonwebtoken": "catalog:",
-    "pg": "catalog:"
+    "pg": "catalog:",
+    "@varlock/google-secret-manager-plugin": "catalog:",
+    "varlock": "catalog:"
   }
 }
