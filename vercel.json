@@ -1,0 +1,16 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "version": 2,
+  "functions": {
+    "api/index.js": {
+      "includeFiles": "{.env.schema,.env.production,.env.preview,.env.schema.d/.env.*,public/**,resources/**,node_modules/@varlock/google-secret-manager-plugin/**,node_modules/varlock/**}",
+      "regions": ["lhr1"]
+    }
+  },
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/api/index.js"
+    }
+  ]
+}

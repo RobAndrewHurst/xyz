@@ -54,11 +54,27 @@ The process.ENV object holds configuration provided to the node process from the
 @property {String} [SLO_CALLBACK] - URL for handling logout callbacks
 */
 
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { config } from 'dotenv';
-import 'varlock/auto-load';
-import { readFileSync } from 'fs';
+
+import {
+  load as loadVarlock,
+  patchGlobalConsole,
+  patchGlobalResponse,
+  patchGlobalServerResponse,
+} from 'varlock';
+import { ENV } from 'varlock/env';
+
+try {
+  await loadVarlock();
+  patchGlobalConsole();
+  patchGlobalServerResponse();
+  patchGlobalResponse();
+} catch (error) {
+  console.error(error);
+  process.exit(error.exitCode ?? 1);
+}
 
 const defaults = {
   COOKIE_TTL: 36000,
@@ -80,10 +96,8 @@ const defaults = {
 const workspaceRoot = fileURLToPath(new URL('../../../../', import.meta.url));
 const rootDir = process.env.XYZ_CWD || workspaceRoot;
 
-config({ path: resolve(rootDir, '.env'), quiet: true });
-
-if (process.env.SECRET_KEY) {
-  const SECRET = String(readFileSync(resolve(rootDir, process.env.SECRET_KEY)));
+if (envValue('SECRET_KEY')) {
+  const SECRET = String(readFileSync(resolve(rootDir, envValue('SECRET_KEY'))));
 
   process.env.SECRET = SECRET;
   process.env.SECRET_ALGORITHM ??= 'RS256';
@@ -114,17 +128,17 @@ process.env.WORKSPACE_AGE ??= defaults.WORKSPACE_AGE;
 process.env.FILE_RESOURCES ??= defaults.FILE_RESOURCES;
 
 const xyzEnv = {
-  COOKIE_TTL: Number.parseInt(process.env.COOKIE_TTL),
+  COOKIE_TTL: Number.parseInt(envValue('COOKIE_TTL')),
   DIR: process.env.DIR,
-  FAILED_ATTEMPTS: process.env.FAILED_ATTEMPTS,
-  PORT: Number.parseInt(process.env.PORT),
-  RATE_LIMIT: process.env.RATE_LIMIT,
-  RATE_LIMIT_WINDOW: process.env.RATE_LIMIT_WINDOW,
-  RETRY_LIMIT: process.env.RETRY_LIMIT,
-  TITLE: process.env.TITLE,
-  TRANSPORT_PORT: Number.parseInt(process.env.TRANSPORT_PORT),
-  TRANSPORT_TLS: process.env.TRANSPORT_TLS,
-  WORKSPACE_AGE: process.env.WORKSPACE_AGE,
+  FAILED_ATTEMPTS: envValue('FAILED_ATTEMPTS'),
+  PORT: Number.parseInt(envValue('PORT')),
+  RATE_LIMIT: envValue('RATE_LIMIT'),
+  RATE_LIMIT_WINDOW: envValue('RATE_LIMIT_WINDOW'),
+  RETRY_LIMIT: envValue('RETRY_LIMIT'),
+  TITLE: envValue('TITLE'),
+  TRANSPORT_PORT: Number.parseInt(envValue('TRANSPORT_PORT')),
+  TRANSPORT_TLS: envValue('TRANSPORT_TLS'),
+  WORKSPACE_AGE: envValue('WORKSPACE_AGE'),
   WALLET: {},
   XYZ_CWD: rootDir,
 };
@@ -150,3 +164,7 @@ function addKeyToWallet(variable) {
 Object.freeze(xyzEnv);
 
 globalThis.xyzEnv ??= xyzEnv;
+
+function envValue(key) {
+  return ENV[key] ?? process.env[key];
+}

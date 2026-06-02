@@ -40,12 +40,21 @@ RATE_LIMIT_WINDOW - Time window in ms (default: 1 min)
 @requires /utils/processEnv
 */
 
-import createRouter from './router.js';
-import './mod/utils/processEnv.js';
-import express from 'express';
-import rootRedirect from './mod/middleware/rootRedirect.js';
-import validateRequestAuth from './mod/middleware/validateRequestAuth.js';
-import validateRequestParams from './mod/middleware/validateRequestParams.js';
+await import('./mod/utils/processEnv.js');
+
+const [
+  { default: createRouter },
+  { default: express },
+  { default: rootRedirect },
+  { default: validateRequestAuth },
+  { default: validateRequestParams },
+] = await Promise.all([
+  import('./router.js'),
+  import('express'),
+  import('./mod/middleware/rootRedirect.js'),
+  import('./mod/middleware/validateRequestAuth.js'),
+  import('./mod/middleware/validateRequestParams.js'),
+]);
 
 const router = createRouter([
   rootRedirect,
