@@ -1,10 +1,8 @@
 /**
 The query module exports the [SQL] query method to pass queries to dbs connections configured in the XYZ process environment.
 
-@requires /user/login
 @requires /utils/dbs
 @requires /utils/logger
-@requires /utils/roles
 @requires /utils/sqlFilter
 @requires /workspace/cache
 @requires /workspace/getLayer
@@ -13,12 +11,11 @@ The query module exports the [SQL] query method to pass queries to dbs connectio
 @module /query
 */
 
-import login from './user/login.js';
 import dbs_connections from './utils/dbs.js';
 import logger from './utils/logger.js';
-import * as Roles from './utils/roles.js';
 import sqlFilter from './utils/sqlFilter.js';
 import workspaceCache from './workspace/cache.js';
+import composeObj from './workspace/composeObj.js';
 import getLayer from './workspace/getLayer.js';
 import getTemplate from './workspace/getTemplate.js';
 
@@ -69,14 +66,17 @@ export default async function query(req, res) {
   if (res.finished) return;
 
   // Must be run after the layerQuery method since the query template could be defined within the layer [template].
-  // The template must be a copy to prevent mutation of the cached template object which may be used in other requests.
-  const template = { ...(await getTemplate(req.params.template)) };
+  const template = await composeObj(
+    { template: req.params.template },
+    req.params.user?.roles,
+  );
 
-  if (template.err instanceof Error) {
+  if (template instanceof Error) {
+    console.log(template.message);
     res
-      .status(500)
+      .status(400)
       .setHeader('Content-Type', 'text/plain')
-      .send(template.err.message);
+      .send(template.message);
     return;
   }
 
@@ -91,31 +91,17 @@ export default async function query(req, res) {
     return;
   }
 
-  // The template requires user login.
-  if (template.roles && !req.params.user) {
-    req.params.msg = 'login_required';
-    login(req, res);
-    return;
-  }
-
   // The template requires the admin role for the user.
   if (template.admin && !req.params.user?.admin) {
-    req.params.msg = 'admin_required';
-    login(req, res);
+    res
+      .status(401)
+      .setHeader('Content-Type', 'text/plain')
+      .send(`${req.params.template} query requires admin credentials.`);
     return;
   }
 
-  // Validate template role access.
-  if (!Roles.check(template, req.params.user?.roles)) {
-    res
-      .status(403)
-      .setHeader('Content-Type', 'text/plain')
-      .send('Role access denied for query template.');
-    return;
-  }
   // Use layer dbs if defined, or workspace dbs, or provided dbs in the query.
-  template.dbs =
-    req.params.layer?.dbs || req.params.workspace.dbs || template.dbs;
+  template.dbs ??= req.params.layer?.dbs || req.params.workspace.dbs;
 
   // Validate that the dbs string exists as a stored connection method in dbs_connections.
   if (!Object.hasOwn(dbs_connections, template.dbs)) {
@@ -145,23 +131,21 @@ export default async function query(req, res) {
 
   logger(query, 'query');
 
-  // Nonblocking queries will not wait for results but return immediately.
-  if (template.nonblocking) {
-    dbs_connections[template.dbs](
-      query,
-      req.params.SQL,
-      template.statement_timeout,
-    );
-
-    return res.send('Non blocking request sent.');
-  }
-
-  // Run the query
-  const rows = await dbs_connections[template.dbs](
+  const queryPromise = dbs_connections[template.dbs](
     query,
     req.params.SQL,
     template.statement_timeout,
   );
+
+  // Nonblocking queries will not wait for results but return immediately.
+  if (template.nonblocking) {
+    return res
+      .status(202)
+      .send(`Non blocking request sent at ${new Date().toISOString()}.`);
+  }
+
+  // Run the query
+  const rows = await queryPromise;
 
   sendRows(res, template, rows);
 }
@@ -341,7 +325,7 @@ function templateTables(template) {
 @description
 Layer queries should restrict the fields provided as param to query templates.
 
-The method will call the recursive objPropValueSet method to parse the layer object for any values referenced as properties with the 'field' key.
+The method will call the recursive fieldsValueSet method to parse the layer object for any values referenced as properties with the 'field' key.
 
 Field values may not be referenced in the layer object from role restricted templates.
 
@@ -359,7 +343,12 @@ async function checkFieldsParam(req, res) {
 
   const layerFields = new Set();
 
-  objPropValueSet(req.params.layer, 'field', layerFields);
+  fieldsValueSet(req.params.layer, layerFields);
+
+  // Technical debt: The cluster label should be added as a field in the layer template to prevent direct reference here.
+  if (req.params.layer.cluster?.label) {
+    layerFields.add(req.params.layer.cluster.label);
+  }
 
   req.params.fieldsMap = new Map();
 
@@ -386,18 +375,17 @@ async function checkFieldsParam(req, res) {
 }
 
 /**
-@function objPropValueSet
+@function fieldsValueSet
 
 @description
 The recursive method parses all properties in an object and calls itself if the property value is an object.
 
-String values of object properties with the key matching the prop argument will be added to the set argument.
+String values of properties with the key 'field' and values of properties with the key 'fields' which are arrays of strings are added to the set provided as an argument to the method.
 
 @param {object} obj Object to parse for property values.
-@param {string} prop The property key.
 @param {set} set The set to which the property values should be added.
 */
-function objPropValueSet(obj, prop, set) {
+function fieldsValueSet(obj, set) {
   if (typeof obj !== 'object') return;
 
   // Return early if object is null or empty
@@ -407,20 +395,25 @@ function objPropValueSet(obj, prop, set) {
   if (obj instanceof Object && !Object.keys(obj)) return;
 
   for (const [key, value] of Object.entries(obj)) {
-    if (key === prop && typeof value === 'string') {
+    if (key === 'field' && typeof value === 'string') {
       set.add(value);
+      continue;
+    }
+
+    if (key === 'fields' && Array.isArray(value)) {
+      value.forEach((item) => set.add(item));
       continue;
     }
 
     // Recursively process each item if we find an array
     if (Array.isArray(value)) {
-      value.forEach((item) => objPropValueSet(item, prop, set));
+      value.forEach((item) => fieldsValueSet(item, set));
       continue;
     }
 
     // Recursively process nested objects
     if (value instanceof Object) {
-      objPropValueSet(value, prop, set);
+      fieldsValueSet(value, set);
     }
   }
 }
@@ -714,7 +707,7 @@ function sendRows(res, template, rows) {
     res
       .status(202)
       .setHeader('Content-Type', 'text/plain')
-      .send('No row returned any value.');
+      .send('No rows returned from table.');
     return;
   }
 

@@ -3,7 +3,9 @@
 
 The processEnv module parses environment variables, sets defaults, and assigns an object with variable properties as globalThis.xyzEnv.
 
-Sensitive variables must be declared in an .env.schema file in the root directory.
+Varlock is optional. The module hydrates the environment from varlock when a frozen .varlock.blob or a `varlock run` parent process provides one, and otherwise falls back to the environment variables the process was launched with.
+
+Sensitive variables must be declared in an .env.schema file in the root directory when varlock is used.
 
 Non sensitive environment variables such as a local workspace may be provided in the root env file.
 
@@ -29,31 +31,32 @@ import {
 import { decryptEnvBlobSync, isEncryptedBlob } from 'varlock/encrypt-env';
 
 if (process.env.VERCEL) {
-  // Vercel deployments hydrate the environment from the frozen blob written by utils/freeze-env.js before the deployment.
+  // Vercel deployments may hydrate the environment from the frozen blob written by utils/freeze-env.js before the deployment.
   // No schema, plugin, or secret resolution happens at runtime.
+  // The blob is optional. Without it the process uses the environment variables configured in the Vercel project.
   const frozenEnvPath = new URL('../../../../.varlock.blob', import.meta.url);
 
-  if (!existsSync(frozenEnvPath)) {
-    throw new Error(
-      'Missing .varlock.blob - run `pnpm freeze-env` before deploying.',
-    );
-  }
+  if (existsSync(frozenEnvPath)) {
+    let frozenEnv = readFileSync(frozenEnvPath, 'utf8');
 
-  let frozenEnv = readFileSync(frozenEnvPath, 'utf8');
-
-  if (isEncryptedBlob(frozenEnv)) {
-    if (!process.env._VARLOCK_ENV_KEY) {
-      throw new Error(
-        '.varlock.blob is encrypted but _VARLOCK_ENV_KEY is not set in the process environment.',
-      );
+    if (isEncryptedBlob(frozenEnv)) {
+      // A blob which cannot be decrypted is a misconfiguration rather than an opt out of varlock.
+      if (!process.env._VARLOCK_ENV_KEY) {
+        throw new Error(
+          '.varlock.blob is encrypted but _VARLOCK_ENV_KEY is not set in the process environment.',
+        );
+      }
+      frozenEnv = decryptEnvBlobSync(frozenEnv, process.env._VARLOCK_ENV_KEY);
     }
-    frozenEnv = decryptEnvBlobSync(frozenEnv, process.env._VARLOCK_ENV_KEY);
-  }
 
-  process.env.__VARLOCK_ENV = frozenEnv;
+    process.env.__VARLOCK_ENV = frozenEnv;
+  }
 }
 
-internal.initVarlockEnv();
+// Varlock is optional. allowFail prevents initVarlockEnv from throwing when there is nothing to hydrate,
+// eg. a deployment without a frozen blob or a process not launched through `varlock run`.
+// The process then falls back to the environment variables it was launched with.
+internal.initVarlockEnv({ allowFail: true });
 
 // Match varlock/auto-load runtime behavior; redact sensitive values from console output and prevent leaks in HTTP responses.
 patchGlobalConsole();
@@ -93,19 +96,20 @@ The process.ENV object holds configuration provided to the node process from the
 @property {String} [KEY_CLOUDFRONT] A key [*.pem] file matching the KEY_CLOUDFRONT value is required for authentication requests in the [cloudfront]{@link module:/provider/cloudfront} provider module.
 @property {String} [AWS_S3_CLIENT] A AWS_S3_CLIENT xyzEnv is required to sign requests with the [s3]{@link module:/sign/s3} signer module.
 @property {String} [CLOUDINARY_URL] A CLOUDINARY_URL xyzEnv is required to sign requests with the [cloudinary]{@link module:/sign/cloudinary} signer module.
-@property {String} [SAML_ACS] - Assertion Consumer Service URL where SAML responses are received
-@property {String} [SAML_SSO] - Single Sign-On URL of the Identity Provider
-@property {String} [SAML_SLO] - Single Logout URL for terminating sessions
-@property {String} [SAML_ENTITY_ID] - Service Provider Entity ID (your application identifier)
-@property {String} [SAML_IDP_CRT] - Path to IdP certificate file for validation
-@property {String} [SAML_SP_CRT] - Base name for SP certificate pair files
-@property {String} [SAML_WANT_ASSERTIONS_SIGNED] - Require signed assertions (true/false)
-@property {String} [SAML_AUTHN_RESPONSE_SIGNED] - Require signed responses (true/false)
-@property {String} [SAML_SIGNATURE_ALGORITHM] - Algorithm for signing (e.g., 'sha256')
-@property {String} [SAML_IDENTIFIER_FORMAT] - Format for name identifiers
-@property {String} [SAML_ACCEPTED_CLOCK_SKEW] - Allowed time difference in ms
-@property {String} [SAML_PROVIDER_NAME] - Display name for your service
-@property {String} [SLO_CALLBACK] - URL for handling logout callbacks
+@property {String} [SAML_ACS] Assertion Consumer Service URL where SAML responses are received
+@property {String} [SAML_SSO] Single Sign-On URL of the Identity Provider
+@property {String} [SAML_SLO] Single Logout URL for terminating sessions
+@property {String} [SAML_ENTITY_ID] Service Provider Entity ID (your application identifier)
+@property {String} [SAML_IDP_CRT] Path to IdP certificate file for validation
+@property {String} [SAML_SP_CRT] Base name for SP certificate pair files
+@property {String} [SAML_WANT_ASSERTIONS_SIGNED] Require signed assertions (true/false)
+@property {String} [SAML_AUTHN_RESPONSE_SIGNED] Require signed responses (true/false)
+@property {String} [SAML_SIGNATURE_ALGORITHM] Algorithm for signing (e.g., 'sha256')
+@property {String} [SAML_IDENTIFIER_FORMAT] Format for name identifiers
+@property {String} [SAML_ACCEPTED_CLOCK_SKEW] Allowed time difference in ms
+@property {String} [SAML_PROVIDER_NAME] Display name for your service
+@property {String} [SLO_CALLBACK] URL for handling logout callbacks
+@property {Boolean} [LEGACY_ROLES] Enable legacy role checks
 */
 
 const defaults = {
